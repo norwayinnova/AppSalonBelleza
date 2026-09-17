@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
-import { collection, addDoc, onSnapshot, query, deleteDoc, doc, orderBy } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, deleteDoc, doc, orderBy , where} from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 export default function PromotionsScreen() {
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const [promotions, setPromotions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -11,7 +14,7 @@ export default function PromotionsScreen() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const q = query(collection(db, 'promotions'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, 'promotions'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
       const list: any[] = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() }));
@@ -27,7 +30,7 @@ export default function PromotionsScreen() {
       return;
     }
     try {
-      await addDoc(collection(db, 'promotions'), {
+      await addDoc(collection(db, 'promotions'), { tenantId, tenantId,
         title: title.trim(),
         message: message.trim(),
         createdAt: new Date()
@@ -55,7 +58,7 @@ export default function PromotionsScreen() {
     });
   };
 
-  if (loading) return <ActivityIndicator size="large" color="#D48A9A" style={{marginTop: 50}} />;
+  if (loading) return <ActivityIndicator size="large" color=theme.primaryColor style={{marginTop: 50}} />;
 
   return (
     <ScrollView style={styles.container}>
@@ -78,7 +81,7 @@ export default function PromotionsScreen() {
         <Text style={styles.label}>Mensaje de WhatsApp a enviar:</Text>
         <TextInput 
           style={[styles.input, { height: 120, textAlignVertical: 'top' }]} 
-          placeholder="Ej: ¡Hola! Este San Valentín en Avalon Mystic te regalamos..." 
+          placeholder={`${theme.appName}`} 
           multiline
           numberOfLines={6}
           value={message} 
@@ -122,7 +125,7 @@ export default function PromotionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f2f4f7', padding: 15 },
   header: { marginBottom: 20 },
   mainTitle: { fontSize: 24, fontWeight: 'bold', color: '#333' },
@@ -150,3 +153,7 @@ const styles = StyleSheet.create({
   btnWhatsapp: { backgroundColor: '#25D366', paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
   btnWhatsappText: { color: '#fff', fontWeight: 'bold', fontSize: 15 }
 });
+}
+
+
+

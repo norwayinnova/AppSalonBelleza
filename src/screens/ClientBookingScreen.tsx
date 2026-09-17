@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking } from 'react-native';
 import { collection, query, onSnapshot, where, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Calendar } from 'react-native-calendars';
 
 export default function ClientBookingScreen({ navigation }: any) {
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   
@@ -29,7 +32,7 @@ export default function ClientBookingScreen({ navigation }: any) {
 
   useEffect(() => {
     // Load services
-    const qSrv = query(collection(db, 'services'));
+    const qSrv = query(collection(db, 'services'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unSrv = onSnapshot(qSrv, snap => {
       const list: any[] = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() }));
@@ -37,7 +40,7 @@ export default function ClientBookingScreen({ navigation }: any) {
     });
 
     // Load teams
-    const qTeams = query(collection(db, 'teams'));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unTeams = onSnapshot(qTeams, snap => {
       const list: any[] = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() }));
@@ -58,7 +61,7 @@ export default function ClientBookingScreen({ navigation }: any) {
     setIsCalculatingSlots(true);
     try {
       // Get all appointments for that day
-      const qApps = query(collection(db, 'appointments'), where('date', '==', selectedDate));
+      const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
       const snap = await getDocs(qApps);
       
       const allApps: any[] = [];
@@ -124,7 +127,7 @@ export default function ClientBookingScreen({ navigation }: any) {
       }
       // Check fidelity silently
       try {
-        const qFidel = query(collection(db, 'appointments'), where('phone', '==', clientPhone.trim()), where('status', '==', 'completed'));
+        const qFidel = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('phone', '==', clientPhone.trim()), where('status', '==', 'completed'));
         const snap = await getDocs(qFidel);
         if (snap.size === 9) setIsTenthAppointment(true);
         else setIsTenthAppointment(false);
@@ -153,7 +156,7 @@ export default function ClientBookingScreen({ navigation }: any) {
 
       if (selectedTeam.id === 'any') {
         // Find which team is actually free at the selectedTime
-        const qApps = query(collection(db, 'appointments'), where('date', '==', selectedDate));
+        const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
         const snap = await getDocs(qApps);
         const allApps: any[] = [];
         snap.forEach(d => allApps.push(d.data()));
@@ -193,7 +196,7 @@ export default function ClientBookingScreen({ navigation }: any) {
         finalNotes += '\n🌟 10ª Cita - APLICAR 20% DESCUENTO';
       }
 
-      await addDoc(collection(db, 'appointments'), {
+      await addDoc(collection(db, 'appointments'), { tenantId, tenantId,
         client: clientName.trim(),
         phone: clientPhone.trim(),
         date: selectedDate,
@@ -206,7 +209,7 @@ export default function ClientBookingScreen({ navigation }: any) {
         paymentStatus: 'pending', // La fianza está pagada, pero el total queda pendiente
         notes: finalNotes
       });
-      alert('¡Tu reserva ha sido confirmada con éxito! Te esperamos en Avalon Mystic.');
+      alert(`${theme.appName}`);
       // Reiniciar
       setStep(1);
       setClientName('');
@@ -232,13 +235,13 @@ export default function ClientBookingScreen({ navigation }: any) {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#D48A9A" style={{flex:1, justifyContent:'center'}} />;
+    return <ActivityIndicator size="large" color=theme.primaryColor style={{flex:1, justifyContent:'center'}} />;
   }
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Avalon Mystic</Text>
+        <Text style={styles.title}>{theme.appName}</Text>
         <Text style={styles.subtitle}>Reserva tu cita online</Text>
       </View>
 
@@ -302,14 +305,14 @@ export default function ClientBookingScreen({ navigation }: any) {
           <Text style={styles.stepTitle}>4. Elige Fecha y Hora</Text>
           <Calendar
             onDayPress={(day: any) => { setSelectedDate(day.dateString); setSelectedTime(''); }}
-            markedDates={{ [selectedDate]: { selected: true, selectedColor: '#D48A9A' } }}
+            markedDates={{ [selectedDate]: { selected: true, selectedColor: theme.primaryColor } }}
             minDate={new Date().toISOString().split('T')[0]}
-            theme={{ todayTextColor: '#7A4B56', arrowColor: '#7A4B56' }}
+            theme={{ todayTextColor: theme.darkTextColor, arrowColor: theme.darkTextColor }}
           />
           
           {selectedDate ? (
             isCalculatingSlots ? (
-              <ActivityIndicator size="small" color="#D48A9A" style={{marginTop: 20}} />
+              <ActivityIndicator size="small" color=theme.primaryColor style={{marginTop: 20}} />
             ) : availableSlots.length > 0 ? (
               <View style={styles.timeGrid}>
                 {availableSlots.map(time => (
@@ -335,9 +338,9 @@ export default function ClientBookingScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f2f4f7' },
-  header: { padding: 30, backgroundColor: '#D48A9A', alignItems: 'center' },
+  header: { padding: 30, backgroundColor: theme.primaryColor, alignItems: 'center' },
   title: { fontSize: 26, fontWeight: 'bold', color: '#fff' },
   subtitle: { fontSize: 16, color: '#fff', opacity: 0.9, marginTop: 5 },
   card: { backgroundColor: '#fff', margin: 15, borderRadius: 12, padding: 20, elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: {width:0, height:2} },
@@ -346,13 +349,13 @@ const styles = StyleSheet.create({
   
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   optionCard: { width: '48%', borderWidth: 1, borderColor: '#eee', padding: 15, borderRadius: 10, marginBottom: 15, alignItems: 'center', backgroundColor: '#fafafa' },
-  optionSelected: { borderColor: '#D48A9A', backgroundColor: '#fdf5f7' },
+  optionSelected: { borderColor: theme.primaryColor, backgroundColor: '#fdf5f7' },
   optionTitle: { fontWeight: 'bold', color: '#555', textAlign: 'center' },
   optionSub: { fontSize: 12, color: '#888', marginTop: 5 },
-  textSelected: { color: '#D48A9A' },
+  textSelected: { color: theme.primaryColor },
 
   navRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
-  btnAction: { backgroundColor: '#D48A9A', paddingVertical: 15, paddingHorizontal: 20, borderRadius: 10, flex: 1, alignItems: 'center', marginLeft: 5 },
+  btnAction: { backgroundColor: theme.primaryColor, paddingVertical: 15, paddingHorizontal: 20, borderRadius: 10, flex: 1, alignItems: 'center', marginLeft: 5 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   btnBack: { backgroundColor: '#eee', paddingVertical: 15, paddingHorizontal: 20, borderRadius: 10, flex: 1, alignItems: 'center', marginRight: 5 },
   btnBackText: { color: '#555', fontSize: 16, fontWeight: 'bold' },
@@ -364,3 +367,7 @@ const styles = StyleSheet.create({
   timeTextSelected: { color: '#fff' },
   noSlotsText: { textAlign: 'center', marginTop: 20, color: '#888', fontStyle: 'italic' }
 });
+}
+
+
+

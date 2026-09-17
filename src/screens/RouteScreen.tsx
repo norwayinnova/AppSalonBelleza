@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAppContext } from '../context/AppContext';
 import {
   View,
   Text,
@@ -20,6 +21,8 @@ interface RouteSegment {
 }
 
 export default function RouteScreen() {
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
@@ -34,7 +37,7 @@ export default function RouteScreen() {
 
   // 1. Cargar equipos dinámicos
   useEffect(() => {
-    const qTeams = query(collection(db, 'teams'));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubscribeTeams = onSnapshot(qTeams, (snapshot) => {
       const teamsList: any[] = [];
       snapshot.forEach(docSnap => teamsList.push({ id: docSnap.id, ...docSnap.data() }));
@@ -49,7 +52,7 @@ export default function RouteScreen() {
 
   // 2. Cargar citas del día seleccionado
   useEffect(() => {
-    const q = query(collection(db, 'appointments'), where('date', '==', selectedDate));
+    const q = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const appsList: any[] = [];
       snapshot.forEach(doc => appsList.push({ id: doc.id, ...doc.data() }));
@@ -188,8 +191,8 @@ export default function RouteScreen() {
         <View style={styles.calendarContainer}>
           <Calendar
             onDayPress={(day: any) => { setSelectedDate(day.dateString); setShowCalendar(false); }}
-            markedDates={{ [selectedDate]: { selected: true, selectedColor: '#D48A9A' } }}
-            theme={{ todayTextColor: '#7A4B56', arrowColor: '#7A4B56' }}
+            markedDates={{ [selectedDate]: { selected: true, selectedColor: theme.primaryColor } }}
+            theme={{ todayTextColor: theme.darkTextColor, arrowColor: theme.darkTextColor }}
           />
         </View>
       )}
@@ -216,9 +219,9 @@ export default function RouteScreen() {
           <View style={[styles.kpiBox, { backgroundColor: '#FFF5F7', borderColor: '#b2dfb2' }]}>
             <Text style={styles.kpiLabel}>Distancia en Ruta</Text>
             {isCalculatingRoute ? (
-              <ActivityIndicator size="small" color="#7A4B56" style={{ marginVertical: 4 }} />
+              <ActivityIndicator size="small" color=theme.darkTextColor style={{ marginVertical: 4 }} />
             ) : (
-              <Text style={[styles.kpiValue, { color: '#7A4B56' }]}>
+              <Text style={[styles.kpiValue, { color: theme.darkTextColor }]}>
                 {totalKm !== null ? `${totalKm} km` : '--'}
               </Text>
             )}
@@ -228,9 +231,9 @@ export default function RouteScreen() {
           <View style={[styles.kpiBox, { backgroundColor: '#F9F1F3', borderColor: '#E8CED4' }]}>
             <Text style={styles.kpiLabel}>Tiempo al Volante</Text>
             {isCalculatingRoute ? (
-              <ActivityIndicator size="small" color="#7A4B56" style={{ marginVertical: 4 }} />
+              <ActivityIndicator size="small" color=theme.darkTextColor style={{ marginVertical: 4 }} />
             ) : (
-              <Text style={[styles.kpiValue, { color: '#7A4B56' }]}>
+              <Text style={[styles.kpiValue, { color: theme.darkTextColor }]}>
                 {totalDrivingMinutes !== null ? `${totalDrivingMinutes} min` : '--'}
               </Text>
             )}
@@ -297,7 +300,7 @@ export default function RouteScreen() {
                     <Text style={styles.travelIcon}>🚗 ⬇️</Text>
                     <Text style={styles.travelText}>
                       Desplazamiento a parada #{index + 2}:{' '}
-                      <Text style={{ fontWeight: 'bold', color: '#7A4B56' }}>
+                      <Text style={{ fontWeight: 'bold', color: theme.darkTextColor }}>
                         {segment ? `${segment.distanceKm} km (${segment.durationMins} min)` : 'Calculando trayecto...'}
                       </Text>
                     </Text>
@@ -327,18 +330,18 @@ export default function RouteScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, padding: 15, backgroundColor: '#FDF9fa' },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 15, color: '#7A4B56' },
-  sectionLabel: { fontSize: 14, fontWeight: 'bold', color: '#7A4B56', marginBottom: 8 },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 15, color: theme.darkTextColor },
+  sectionLabel: { fontSize: 14, fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 8 },
   
   dropdownBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', padding: 14, borderRadius: 8, marginBottom: 12, alignItems: 'center' },
-  dropdownText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 16 },
+  dropdownText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 16 },
   calendarContainer: { borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: '#ddd', marginBottom: 15 },
   
   teamFilterRow: { flexGrow: 0, marginBottom: 15, height: 45 },
   teamFilterBtn: { paddingVertical: 8, paddingHorizontal: 15, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 20, marginRight: 10, justifyContent: 'center' },
-  teamFilterBtnSelected: { backgroundColor: '#7A4B56', borderColor: '#7A4B56' },
+  teamFilterBtnSelected: { backgroundColor: theme.darkTextColor, borderColor: theme.darkTextColor },
   teamFilterTextSelected: { color: '#fff', fontWeight: 'bold' },
   teamFilterTextUnselected: { color: '#333' },
 
@@ -368,19 +371,19 @@ const styles = StyleSheet.create({
     borderColor: '#EADDE0',
     elevation: 2
   },
-  mapHeader: { backgroundColor: '#7A4B56', paddingHorizontal: 12, paddingVertical: 8 },
+  mapHeader: { backgroundColor: theme.darkTextColor, paddingHorizontal: 12, paddingVertical: 8 },
   mapTitle: { color: '#ffffff', fontWeight: 'bold', fontSize: 13 },
 
   // Itinerario
   routeCard: { flexDirection: 'row', backgroundColor: '#fff', padding: 14, borderRadius: 8, alignItems: 'center', elevation: 1, borderWidth: 1, borderColor: '#EADDE0' },
-  numberCircle: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#7A4B56', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  numberCircle: { width: 34, height: 34, borderRadius: 17, backgroundColor: theme.darkTextColor, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   numberText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   routeInfo: { flex: 1 },
   clientHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 2 },
-  time: { fontWeight: 'bold', color: '#7A4B56', fontSize: 15 },
+  time: { fontWeight: 'bold', color: theme.darkTextColor, fontSize: 15 },
   phoneBadge: { backgroundColor: '#FFF5F7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#F5D6DD' },
-  phoneText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 11 },
-  serviceName: { color: '#D48A9A', fontWeight: 'bold', fontSize: 13, marginBottom: 3 },
+  phoneText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 11 },
+  serviceName: { color: theme.primaryColor, fontWeight: 'bold', fontSize: 13, marginBottom: 3 },
   address: { color: '#444', fontSize: 13, marginBottom: 2 },
   detailedInfo: { color: '#8a5800', fontWeight: 'bold', fontSize: 11, backgroundColor: '#fff8e7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start' },
 
@@ -394,14 +397,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 6,
     borderLeftWidth: 3,
-    borderLeftColor: '#7A4B56',
+    borderLeftColor: theme.darkTextColor,
     marginVertical: 4
   },
   travelIcon: { fontSize: 13, marginRight: 8 },
   travelText: { fontSize: 12, color: '#444' },
 
-  mapButton: { backgroundColor: '#D48A9A', padding: 14, borderRadius: 8, alignItems: 'center', marginTop: 15 },
+  mapButton: { backgroundColor: theme.primaryColor, padding: 14, borderRadius: 8, alignItems: 'center', marginTop: 15 },
   mapButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   emptyCard: { backgroundColor: '#fff', padding: 25, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#ddd' },
   emptyText: { textAlign: 'center', color: '#888', fontStyle: 'italic', fontSize: 14 }
 });
+}
+
+
+

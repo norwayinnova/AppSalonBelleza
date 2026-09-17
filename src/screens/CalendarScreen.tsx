@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAppContext } from '../context/AppContext';
 import {
   View,
   Text,
@@ -51,7 +52,8 @@ interface Team {
 }
 
 export default function CalendarScreen({ route, navigation }: any) {
-  const { role, teamName: userTeamName } = route?.params || { role: 'admin', teamName: null };
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const isAdmin = role === 'admin' || role === 'management';
   const isStrictAdmin = role === 'admin'; // Para funciones exclusivas de admin (borrar, facturar, etc.)
 
@@ -60,7 +62,7 @@ export default function CalendarScreen({ route, navigation }: any) {
   const [teams, setTeams] = useState<any[]>([]);
   
   // Set default team to logged-in team if not admin
-  const [filterTeam, setFilterTeam] = useState<string | null>(isAdmin ? null : userTeamName);
+  const [filterTeam, setFilterTeam] = useState<string | null>(isAdmin ? null : teamName);
   const [conflicts, setConflicts] = useState<Record<string, string>>({});
   
   // Optimizador de Rutas
@@ -104,18 +106,18 @@ export default function CalendarScreen({ route, navigation }: any) {
 
   // 1. Cargar Equipos desde Firestore
   useEffect(() => {
-    const qTeams = query(collection(db, 'teams'));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubscribeTeams = onSnapshot(qTeams, async (snapshot) => {
       if (snapshot.empty) {
         try {
-          await addDoc(collection(db, 'teams'), {
+          await addDoc(collection(db, 'teams'), { tenantId, tenantId,
             name: 'Equipo 1',
             members: 'Carlos y Marcos',
             vehicle: 'Furgoneta 1 (Citroën Berlingo)',
             tools: 'Inyección-Extracción Kärcher, Cepillos, Vaporizador',
             createdAt: new Date()
           });
-          await addDoc(collection(db, 'teams'), {
+          await addDoc(collection(db, 'teams'), { tenantId, tenantId,
             name: 'Equipo 2',
             members: 'Andrea y Javier',
             vehicle: 'Furgoneta 2 (Renault Kangoo)',
@@ -135,7 +137,7 @@ export default function CalendarScreen({ route, navigation }: any) {
       }
     });
 
-    const qServices = query(collection(db, 'services'));
+    const qServices = query(collection(db, 'services'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubscribeServices = onSnapshot(qServices, snap => {
       const srvs: any[] = [];
       snap.forEach(d => srvs.push({ id: d.id, ...d.data() }));
@@ -147,7 +149,7 @@ export default function CalendarScreen({ route, navigation }: any) {
 
   // 2. Cargar Citas y calcular conflictos por equipo
   useEffect(() => {
-    const qApps = query(collection(db, 'appointments'), where('date', '==', selectedDate));
+    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
     const unsubscribeApps = onSnapshot(qApps, (snapshot) => {
       const appsList: Appointment[] = [];
       snapshot.forEach((docSnap) => appsList.push({ id: docSnap.id, ...docSnap.data() } as Appointment));
@@ -188,7 +190,7 @@ export default function CalendarScreen({ route, navigation }: any) {
     const lastDay = new Date(currentMonth.year, currentMonth.month + 1, 0).getDate();
     const endStr = `${currentMonth.year}-${String(currentMonth.month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
     const qMonth = query(
-      collection(db, 'appointments'),
+      collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId),
       where('date', '>=', startStr),
       where('date', '<=', endStr)
     );
@@ -207,7 +209,7 @@ export default function CalendarScreen({ route, navigation }: any) {
     const tDate = tomorrow.toISOString().split('T')[0];
     setTomorrowDateStr(tDate);
 
-    const qTomorrow = query(collection(db, 'appointments'), where('date', '==', tDate));
+    const qTomorrow = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', tDate));
     const unsubscribe = onSnapshot(qTomorrow, (snapshot) => {
       let pending = 0;
       snapshot.forEach(docSnap => {
@@ -229,7 +231,7 @@ export default function CalendarScreen({ route, navigation }: any) {
     
     let dateText = isTomorrow ? 'mañana' : (isToday ? 'hoy' : `el día ${item.date}`);
     
-    const message = `Hola ${item.client}, te recordamos que ${dateText} tienes agendada la cita con Avalon Mystic a las ${item.time}.`;
+    const message = `Hola ${item.client}, te recordamos que ${dateText} tienes agendada la cita con ${theme.appName} a las ${item.time}.`;
     
     let phoneNum = item.phone.replace(/\s+/g, '');
     if (phoneNum.length === 9 && (phoneNum.startsWith('6') || phoneNum.startsWith('7') || phoneNum.startsWith('8') || phoneNum.startsWith('9'))) {
@@ -253,7 +255,7 @@ export default function CalendarScreen({ route, navigation }: any) {
   const requestGoogleReview = async (item: Appointment) => {
     if (!item.phone) return alert('El cliente no tiene teléfono guardado.');
     
-    const message = `¡Hola ${item.client}! 👋\nEsperamos que hayas quedado encantado con el servicio de ${item.serviceName.toLowerCase()}. ✨\n\nPara nosotros tu opinión es fundamental. Si te ha gustado el resultado, ¿nos regalarías 1 minuto para dejarnos 5 estrellitas en Google? Nos ayuda muchísimo a seguir creciendo. 🙏\n\n⭐ Puedes hacerlo aquí: https://share.google/8mzwiMXmLf2HoZoOS\n\n¡Mil gracias por confiar en Avalon Mystic!`;
+    const message = `¡Hola ${item.client}! 👋\nEsperamos que hayas quedado encantado con el servicio de ${item.serviceName.toLowerCase()}. ✨\n\nPara nosotros tu opinión es fundamental. Si te ha gustado el resultado, ¿nos regalarías 1 minuto para dejarnos 5 estrellitas en Google? Nos ayuda muchísimo a seguir creciendo. 🙏\n\n⭐ Puedes hacerlo aquí: https://share.google/8mzwiMXmLf2HoZoOS\n\n¡Mil gracias por confiar en ${theme.appName}!`;
     
     let phoneNum = item.phone.replace(/\s+/g, '');
     if (phoneNum.length === 9 && (phoneNum.startsWith('6') || phoneNum.startsWith('7') || phoneNum.startsWith('8') || phoneNum.startsWith('9'))) {
@@ -369,7 +371,7 @@ export default function CalendarScreen({ route, navigation }: any) {
         });
         setEditingTeamId(null);
       } else {
-        await addDoc(collection(db, 'teams'), {
+        await addDoc(collection(db, 'teams'), { tenantId, tenantId,
           ...teamData,
           createdAt: new Date()
         });
@@ -548,7 +550,7 @@ export default function CalendarScreen({ route, navigation }: any) {
             <TouchableOpacity style={[styles.manageTeamsBtn, {backgroundColor: '#f5f7fa', borderColor: '#e0e8f0'}]} onPress={() => {
               const newPin = window.prompt("Introduce tu nuevo PIN personal (4 dígitos):");
               if (newPin && newPin.length === 4) {
-                 const t = teams.find(t => t.name === userTeamName);
+                 const t = teams.find(t => t.name === teamName);
                  if (t) {
                    require('firebase/firestore').updateDoc(require('firebase/firestore').doc(db, 'teams', t.id), { pin: newPin })
                      .then(() => alert('Tu PIN ha sido actualizado con éxito.'))
@@ -591,7 +593,7 @@ export default function CalendarScreen({ route, navigation }: any) {
         const today = new Date().toISOString().split('T')[0];
 
         // Colores de punto por estado
-        const STATUS_COLOR: Record<string, string> = { pending: '#f39c12', in_progress: '#D48A9A', completed: '#D48A9A', cancelled: '#e74c3c' };
+        const STATUS_COLOR: Record<string, string> = { pending: theme.secondaryColor, in_progress: theme.primaryColor, completed: theme.primaryColor, cancelled: '#e74c3c' };
 
         const cells: (number | null)[] = [...Array(startOffset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
         while (cells.length % 7 !== 0) cells.push(null);
@@ -654,8 +656,8 @@ export default function CalendarScreen({ route, navigation }: any) {
 
             {/* Leyenda */}
             <View style={styles.monthLegend}>
-              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: '#f39c12' }]} /><Text style={styles.legendText}>Pendiente</Text></View>
-              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: '#D48A9A' }]} /><Text style={styles.legendText}>Completado</Text></View>
+              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: theme.secondaryColor }]} /><Text style={styles.legendText}>Pendiente</Text></View>
+              <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: theme.primaryColor }]} /><Text style={styles.legendText}>Completado</Text></View>
               <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: '#e74c3c' }]} /><Text style={styles.legendText}>Cancelado</Text></View>
               <View style={styles.legendItem}><View style={[styles.legendDot, { backgroundColor: '#9b59b6' }]} /><Text style={styles.legendText}>Bloqueo</Text></View>
             </View>
@@ -669,11 +671,11 @@ export default function CalendarScreen({ route, navigation }: any) {
                   <Text style={styles.monthSummaryLabel}>Total citas</Text>
                 </View>
                 <View style={styles.monthSummaryKpi}>
-                  <Text style={[styles.monthSummaryNum, { color: '#D48A9A' }]}>{monthAppointments.filter(a => a.status === 'completed').length}</Text>
+                  <Text style={[styles.monthSummaryNum, { color: theme.primaryColor }]}>{monthAppointments.filter(a => a.status === 'completed').length}</Text>
                   <Text style={styles.monthSummaryLabel}>Completadas</Text>
                 </View>
                 <View style={styles.monthSummaryKpi}>
-                  <Text style={[styles.monthSummaryNum, { color: '#f39c12' }]}>{monthAppointments.filter(a => !a.status || a.status === 'pending').length}</Text>
+                  <Text style={[styles.monthSummaryNum, { color: theme.secondaryColor }]}>{monthAppointments.filter(a => !a.status || a.status === 'pending').length}</Text>
                   <Text style={styles.monthSummaryLabel}>Pendientes</Text>
                 </View>
               </View>
@@ -704,8 +706,8 @@ export default function CalendarScreen({ route, navigation }: any) {
               setSelectedDate(day.dateString);
               setShowCalendar(false);
             }}
-            markedDates={{ [selectedDate]: { selected: true, selectedColor: '#D48A9A' } }}
-            theme={{ todayTextColor: '#7A4B56', arrowColor: '#7A4B56' }}
+            markedDates={{ [selectedDate]: { selected: true, selectedColor: theme.primaryColor } }}
+            theme={{ todayTextColor: theme.darkTextColor, arrowColor: theme.darkTextColor }}
           />
         </View>
       )}
@@ -720,7 +722,7 @@ export default function CalendarScreen({ route, navigation }: any) {
         const LABEL_WIDTH = 48;
         const COL_WIDTH = 180;
         const HOUR_LINES = Array.from({ length: Math.ceil(END_HOUR - START_HOUR) + 1 }, (_, i) => START_HOUR + i);
-        const visibleTeams = teams.filter(t => isAdmin || t.name === userTeamName);
+        const visibleTeams = teams.filter(t => isAdmin || t.name === teamName);
 
         const timeToTop = (time: string) => {
           const [h, m] = time.split(':').map(Number);
@@ -728,9 +730,9 @@ export default function CalendarScreen({ route, navigation }: any) {
         };
 
         const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-          pending:     { bg: '#fffbeb', border: '#f39c12', text: '#92400e' },
-          in_progress: { bg: '#eff6ff', border: '#D48A9A', text: '#1e3a8a' },
-          completed:   { bg: '#f0fdf4', border: '#D48A9A', text: '#14532d' },
+          pending:     { bg: '#fffbeb', border: theme.secondaryColor, text: '#92400e' },
+          in_progress: { bg: '#eff6ff', border: theme.primaryColor, text: '#1e3a8a' },
+          completed:   { bg: '#f0fdf4', border: theme.primaryColor, text: '#14532d' },
           cancelled:   { bg: '#fdf0f0', border: '#e74c3c', text: '#c0392b' },
         };
 
@@ -753,9 +755,9 @@ export default function CalendarScreen({ route, navigation }: any) {
                   const teamApps = appointments.filter(a => (a.team || teams[0]?.name) === t.name);
                   return (
                     <View key={t.id} style={{ width: COL_WIDTH, paddingHorizontal: 8, paddingVertical: 10, borderRightWidth: 1, borderRightColor: '#e0e8f0', backgroundColor: '#f8fafc' }}>
-                      <Text style={{ fontWeight: 'bold', color: '#7A4B56', fontSize: 13 }}>🚐 {t.name}</Text>
+                      <Text style={{ fontWeight: 'bold', color: theme.darkTextColor, fontSize: 13 }}>🚐 {t.name}</Text>
                       {t.members ? <Text style={{ fontSize: 11, color: '#888', marginTop: 2 }}>👥 {t.members}</Text> : null}
-                      <Text style={{ fontSize: 11, color: '#D48A9A', marginTop: 2, fontWeight: 'bold' }}>{teamApps.length} cita{teamApps.length !== 1 ? 's' : ''}</Text>
+                      <Text style={{ fontSize: 11, color: theme.primaryColor, marginTop: 2, fontWeight: 'bold' }}>{teamApps.length} cita{teamApps.length !== 1 ? 's' : ''}</Text>
                     </View>
                   );
                 })}
@@ -947,7 +949,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                   </View>
                 ) : (
                   <>
-                    <Text style={{fontWeight: 'bold', color: '#7A4B56', marginBottom: 5}}>Cerrar Servicio:</Text>
+                    <Text style={{fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 5}}>Cerrar Servicio:</Text>
                     <TextInput
                       style={styles.modalInput}
                       placeholder="Importe final cobrado (ej. 45)"
@@ -962,7 +964,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                       <TouchableOpacity style={[styles.completeApptBtn, {backgroundColor: '#00a4bd'}]} onPress={() => completeService(selectedAppointment, 'paid', 'bizum')}>
                         <Text style={styles.completeApptBtnText}>📱 Bizum</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={[styles.completeApptBtn, {backgroundColor: '#f39c12'}]} onPress={() => completeService(selectedAppointment, 'pending')}>
+                      <TouchableOpacity style={[styles.completeApptBtn, {backgroundColor: theme.secondaryColor}]} onPress={() => completeService(selectedAppointment, 'pending')}>
                         <Text style={styles.completeApptBtnText}>⏳ A deber</Text>
                       </TouchableOpacity>
                     </View>
@@ -1038,14 +1040,14 @@ export default function CalendarScreen({ route, navigation }: any) {
               />
 
               <View style={{ marginBottom: 15 }}>
-                <Text style={{ fontWeight: 'bold', color: '#7A4B56', marginBottom: 5 }}>¿Qué servicios realiza esta empleada/equipo?</Text>
+                <Text style={{ fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 5 }}>¿Qué servicios realiza esta empleada/equipo?</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                   {services.map(s => {
                     const isSelected = teamServices.includes(s.id);
                     return (
                       <TouchableOpacity 
                         key={s.id} 
-                        style={[{ paddingVertical: 8, paddingHorizontal: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 20 }, isSelected && { backgroundColor: '#FFF5F7', borderColor: '#D48A9A' }]}
+                        style={[{ paddingVertical: 8, paddingHorizontal: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 20 }, isSelected && { backgroundColor: '#FFF5F7', borderColor: theme.primaryColor }]}
                         onPress={() => {
                           if (isSelected) {
                             setTeamServices(teamServices.filter(id => id !== s.id));
@@ -1054,7 +1056,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                           }
                         }}
                       >
-                        <Text style={isSelected ? { color: '#D48A9A', fontWeight: 'bold' } : { color: '#555' }}>
+                        <Text style={isSelected ? { color: theme.primaryColor, fontWeight: 'bold' } : { color: '#555' }}>
                           {isSelected ? '☑️' : '☐'} {s.name}
                         </Text>
                       </TouchableOpacity>
@@ -1116,11 +1118,11 @@ export default function CalendarScreen({ route, navigation }: any) {
             {optimizationSuggestions.length > 0 ? (
               <View style={{ marginTop: 10 }}>
                 <Text style={{ fontSize: 15, color: '#333', lineHeight: 22, marginBottom: 15 }}>
-                  Hemos detectado que puedes ahorrar unos <Text style={{fontWeight:'bold', color:'#f39c12'}}>{optimizationSuggestions[0].savings} minutos</Text> reasignando una cita.
+                  Hemos detectado que puedes ahorrar unos <Text style={{fontWeight:'bold', color:theme.secondaryColor}}>{optimizationSuggestions[0].savings} minutos</Text> reasignando una cita.
                 </Text>
                 
                 <View style={{ backgroundColor: '#f9f9f9', padding: 15, borderRadius: 8, borderWidth: 1, borderColor: '#eee', marginBottom: 20 }}>
-                  <Text style={{ fontWeight: 'bold', fontSize: 14, color: '#7A4B56' }}>Cita de {optimizationSuggestions[0].clientName}</Text>
+                  <Text style={{ fontWeight: 'bold', fontSize: 14, color: theme.darkTextColor }}>Cita de {optimizationSuggestions[0].clientName}</Text>
                   <Text style={{ color: '#666', marginTop: 4 }}>Hora: {optimizationSuggestions[0].time}</Text>
                   
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 10 }}>
@@ -1130,7 +1132,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                     </View>
                     <Text>➡️</Text>
                     <View style={{ flex: 1, backgroundColor: '#FFF5F7', padding: 8, borderRadius: 6, alignItems: 'center' }}>
-                      <Text style={{ fontSize: 12, color: '#D48A9A', fontWeight: 'bold' }}>Pasar a</Text>
+                      <Text style={{ fontSize: 12, color: theme.primaryColor, fontWeight: 'bold' }}>Pasar a</Text>
                       <Text style={{ fontSize: 13, fontWeight: 'bold' }}>{optimizationSuggestions[0].toTeam}</Text>
                     </View>
                   </View>
@@ -1140,7 +1142,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                   <TouchableOpacity style={[styles.cancelEditBtn, { flex: 1 }]} onPress={() => setShowOptimizerModal(false)}>
                     <Text style={styles.cancelEditBtnText}>Rechazar</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={[styles.saveTeamBtn, { flex: 1.5, backgroundColor: '#f39c12' }]} onPress={() => applyOptimization(optimizationSuggestions[0])}>
+                  <TouchableOpacity style={[styles.saveTeamBtn, { flex: 1.5, backgroundColor: theme.secondaryColor }]} onPress={() => applyOptimization(optimizationSuggestions[0])}>
                     <Text style={styles.saveTeamBtnText}>Confirmar y Mover</Text>
                   </TouchableOpacity>
                 </View>
@@ -1154,7 +1156,7 @@ export default function CalendarScreen({ route, navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FDF9fa' },
   topBar: {
     flexDirection: 'row',
@@ -1174,17 +1176,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#d0e0f0'
   },
-  datePickerText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 15 },
+  datePickerText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 15 },
   topActions: { flexDirection: 'row', gap: 8 },
   manageTeamsBtn: {
-    backgroundColor: '#7A4B56',
+    backgroundColor: theme.darkTextColor,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8
   },
   manageTeamsText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
   newApptBtn: {
-    backgroundColor: '#D48A9A',
+    backgroundColor: theme.primaryColor,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8
@@ -1220,14 +1222,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    backgroundColor: '#7A4B56',
+    backgroundColor: theme.darkTextColor,
     borderTopLeftRadius: 9,
     borderTopRightRadius: 9
   },
   teamTitle: { color: '#ffffff', fontWeight: 'bold', fontSize: 16 },
   teamHeaderSubtitle: { color: '#C9A3AD', fontSize: 12, marginTop: 2 },
   teamCountBadge: {
-    backgroundColor: '#D48A9A',
+    backgroundColor: theme.primaryColor,
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 12,
@@ -1244,7 +1246,7 @@ const styles = StyleSheet.create({
     gap: 3
   },
   teamInfoItem: { fontSize: 12, color: '#333' },
-  infoBold: { fontWeight: 'bold', color: '#7A4B56' },
+  infoBold: { fontWeight: 'bold', color: theme.darkTextColor },
   columnBody: { padding: 12, flex: 1 },
   card: {
     backgroundColor: '#fbfcfd',
@@ -1252,20 +1254,20 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#7A4B56',
+    borderLeftColor: theme.darkTextColor,
     borderWidth: 1,
     borderColor: '#F2E8EB'
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 },
-  time: { fontWeight: 'bold', color: '#7A4B56', fontSize: 15 },
-  service: { color: '#D48A9A', fontWeight: 'bold', fontSize: 13, marginTop: 2 },
+  time: { fontWeight: 'bold', color: theme.darkTextColor, fontSize: 15 },
+  service: { color: theme.primaryColor, fontWeight: 'bold', fontSize: 13, marginTop: 2 },
   deleteIcon: { fontSize: 16, padding: 4 },
   clientRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 6 },
   client: { fontSize: 14, color: '#333', fontWeight: 'bold' },
   phoneBadge: { backgroundColor: '#FFF5F7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, borderWidth: 1, borderColor: '#F5D6DD' },
-  phoneText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 12 },
+  phoneText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 12 },
   chatBadge: { backgroundColor: '#FFF5F7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, borderWidth: 1, borderColor: '#E8CED4' },
-  chatText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 12 },
+  chatText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 12 },
   priceContainer: {
     backgroundColor: '#FFF5F7',
     paddingHorizontal: 8,
@@ -1274,7 +1276,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: 8
   },
-  priceText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 13 },
+  priceText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 13 },
   conflictBanner: {
     backgroundColor: '#ffe5e5',
     padding: 8,
@@ -1292,7 +1294,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#d0d7de'
   },
-  mapButtonText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 13 },
+  mapButtonText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 13 },
   detailedInfoBox: {
     backgroundColor: '#fff8e7',
     borderWidth: 1,
@@ -1309,21 +1311,21 @@ const styles = StyleSheet.create({
   // Estilos del Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 15 },
   modalCard: { width: '100%', maxWidth: 500, backgroundColor: '#fff', borderRadius: 12, padding: 20, elevation: 5 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#7A4B56', marginBottom: 4 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 4 },
   modalSubtitle: { fontSize: 13, color: '#666', marginBottom: 12 },
   modalInput: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, marginBottom: 8, backgroundColor: '#fafafa' },
-  saveTeamBtn: { flex: 1, backgroundColor: '#D48A9A', paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
+  saveTeamBtn: { flex: 1, backgroundColor: theme.primaryColor, paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
   saveTeamBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   cancelEditBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d9534f', paddingHorizontal: 15, paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
   cancelEditBtnText: { color: '#d9534f', fontWeight: 'bold', fontSize: 14 },
-  teamListTitle: { fontSize: 15, fontWeight: 'bold', color: '#7A4B56', marginTop: 18, marginBottom: 8 },
+  teamListTitle: { fontSize: 15, fontWeight: 'bold', color: theme.darkTextColor, marginTop: 18, marginBottom: 8 },
   teamCardItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, backgroundColor: '#f7f9fb', borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#e3ebf2' },
-  teamItemTitle: { fontSize: 15, fontWeight: 'bold', color: '#7A4B56' },
+  teamItemTitle: { fontSize: 15, fontWeight: 'bold', color: theme.darkTextColor },
   teamItemSub: { fontSize: 12, color: '#555', marginTop: 2 },
   teamItemActions: { flexDirection: 'row', gap: 6 },
   iconBtn: { padding: 6, backgroundColor: '#fff', borderRadius: 6, borderWidth: 1, borderColor: '#ddd' },
   iconBtnText: { fontSize: 14 },
-  closeModalBtn: { backgroundColor: '#7A4B56', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 15 },
+  closeModalBtn: { backgroundColor: theme.darkTextColor, padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 15 },
   closeModalBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   
   // Estilos WhatsApp
@@ -1355,47 +1357,47 @@ const styles = StyleSheet.create({
   
   // Estilos de Fotografías
   photosSection: { marginTop: 12, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 10 },
-  photosTitle: { fontSize: 13, fontWeight: 'bold', color: '#7A4B56', marginBottom: 8 },
+  photosTitle: { fontSize: 13, fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 8 },
   photosRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   thumbnailImg: { width: 60, height: 60, borderRadius: 8, borderWidth: 1, borderColor: '#ddd' },
   uploadingBox: { width: 60, height: 60, borderRadius: 8, backgroundColor: '#f0f0f0', justifyContent: 'center', alignItems: 'center' },
   addPhotoBtn: { width: 60, height: 60, borderRadius: 8, backgroundColor: '#FFF5F7', borderWidth: 1, borderColor: '#F5D6DD', justifyContent: 'center', alignItems: 'center', borderStyle: 'dashed' },
-  addPhotoBtnText: { fontSize: 24, color: '#D48A9A' },
+  addPhotoBtnText: { fontSize: 24, color: theme.primaryColor },
 
   // Estilos del nuevo Modal de Detalles
   cardMiniIndicators: { flexDirection: 'row', gap: 5, marginTop: 8 },
   miniIcon: { fontSize: 13, backgroundColor: '#FDF9fa', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden' },
   detailsModalCard: { width: '100%', maxWidth: 450, backgroundColor: '#fff', borderRadius: 12, padding: 20, elevation: 5 },
   detailsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 15, borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 10 },
-  detailsTime: { fontSize: 18, fontWeight: 'bold', color: '#7A4B56' },
-  detailsService: { fontSize: 15, color: '#D48A9A', fontWeight: 'bold', marginTop: 4 },
+  detailsTime: { fontSize: 18, fontWeight: 'bold', color: theme.darkTextColor },
+  detailsService: { fontSize: 15, color: theme.primaryColor, fontWeight: 'bold', marginTop: 4 },
   closeDetailsBtn: { backgroundColor: '#f0f0f0', width: 30, height: 30, borderRadius: 15, justifyContent: 'center', alignItems: 'center' },
   closeDetailsBtnText: { fontSize: 16, fontWeight: 'bold', color: '#555' },
   
   // Estilos de Estados
-  cardInProgress: { borderLeftColor: '#D48A9A', backgroundColor: '#F9F1F3' },
-  cardCompleted: { borderLeftColor: '#D48A9A', backgroundColor: '#FFF5F7', opacity: 0.85 },
+  cardInProgress: { borderLeftColor: theme.primaryColor, backgroundColor: '#F9F1F3' },
+  cardCompleted: { borderLeftColor: theme.primaryColor, backgroundColor: '#FFF5F7', opacity: 0.85 },
   delayBadge: { backgroundColor: '#ffe5e5', color: '#d9534f', fontSize: 12, fontWeight: 'bold', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, overflow: 'hidden' },
   
   statusActionRow: { flexDirection: 'row', marginTop: 20, gap: 10 },
-  startApptBtn: { flex: 1, backgroundColor: '#D48A9A', paddingVertical: 14, borderRadius: 8, alignItems: 'center', elevation: 1 },
+  startApptBtn: { flex: 1, backgroundColor: theme.primaryColor, paddingVertical: 14, borderRadius: 8, alignItems: 'center', elevation: 1 },
   startApptBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   
   // Cabecera superior
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   dateSelector: { flexDirection: 'row', alignItems: 'center' },
-  dateText: { fontSize: 18, fontWeight: 'bold', color: '#7A4B56' },
+  dateText: { fontSize: 18, fontWeight: 'bold', color: theme.darkTextColor },
   headerControls: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  optimizerBtn: { backgroundColor: '#f39c12', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
+  optimizerBtn: { backgroundColor: theme.secondaryColor, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 },
   optimizerBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
   manageTeamsBtn: { backgroundColor: '#F9F1F3', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: '#E8CED4' },
-  manageTeamsText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 13 },
-  newApptBtn: { backgroundColor: '#7A4B56', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 6 },
+  manageTeamsText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 13 },
+  newApptBtn: { backgroundColor: theme.darkTextColor, paddingHorizontal: 15, paddingVertical: 8, borderRadius: 6 },
   newApptText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  completeApptBtn: { flex: 1, backgroundColor: '#D48A9A', paddingVertical: 14, borderRadius: 8, alignItems: 'center', elevation: 1 },
+  completeApptBtn: { flex: 1, backgroundColor: theme.primaryColor, paddingVertical: 14, borderRadius: 8, alignItems: 'center', elevation: 1 },
   completeApptBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
-  completedBadge: { flex: 1, backgroundColor: '#FFF5F7', paddingVertical: 14, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#D48A9A' },
-  completedBadgeText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 16 },
+  completedBadge: { flex: 1, backgroundColor: '#FFF5F7', paddingVertical: 14, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: theme.primaryColor },
+  completedBadgeText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 16 },
   reviewBtn: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#fbbc05', padding: 12, borderRadius: 8, alignItems: 'center' },
   reviewBtnSent: { backgroundColor: '#fff', borderColor: '#d3d3d3', borderWidth: 1 },
   reviewBtnText: { color: '#fbbc05', fontWeight: 'bold', fontSize: 15 },
@@ -1410,23 +1412,23 @@ const styles = StyleSheet.create({
   // Toggle de vista Día / Mes
   viewToggle: { flexDirection: 'row', backgroundColor: '#F9F1F3', borderRadius: 8, borderWidth: 1, borderColor: '#E8CED4', overflow: 'hidden' },
   viewToggleBtn: { paddingHorizontal: 12, paddingVertical: 7 },
-  viewToggleBtnActive: { backgroundColor: '#7A4B56' },
-  viewToggleText: { fontSize: 13, fontWeight: 'bold', color: '#7A4B56' },
+  viewToggleBtnActive: { backgroundColor: theme.darkTextColor },
+  viewToggleText: { fontSize: 13, fontWeight: 'bold', color: theme.darkTextColor },
   viewToggleTextActive: { color: '#fff' },
 
   // Vista Mensual
   monthNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   monthNavBtn: { padding: 8, backgroundColor: '#F9F1F3', borderRadius: 8, borderWidth: 1, borderColor: '#E8CED4' },
-  monthNavArrow: { fontSize: 22, color: '#7A4B56', fontWeight: 'bold', lineHeight: 24 },
-  monthNavTitle: { fontSize: 20, fontWeight: 'bold', color: '#7A4B56' },
+  monthNavArrow: { fontSize: 22, color: theme.darkTextColor, fontWeight: 'bold', lineHeight: 24 },
+  monthNavTitle: { fontSize: 20, fontWeight: 'bold', color: theme.darkTextColor },
   monthWeekHeader: { flexDirection: 'row', marginBottom: 4 },
   monthWeekDay: { flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 'bold', color: '#888', paddingVertical: 6 },
   monthGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   monthCell: { width: `${100/7}%` as any, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', padding: 2, borderRadius: 8, marginBottom: 2 },
-  monthCellToday: { backgroundColor: '#F9F1F3', borderWidth: 1, borderColor: '#D48A9A' },
-  monthCellSelected: { backgroundColor: '#7A4B56' },
-  monthDayNum: { fontSize: 15, fontWeight: '600', color: '#7A4B56' },
-  monthDayNumToday: { color: '#D48A9A', fontWeight: 'bold' },
+  monthCellToday: { backgroundColor: '#F9F1F3', borderWidth: 1, borderColor: theme.primaryColor },
+  monthCellSelected: { backgroundColor: theme.darkTextColor },
+  monthDayNum: { fontSize: 15, fontWeight: '600', color: theme.darkTextColor },
+  monthDayNumToday: { color: theme.primaryColor, fontWeight: 'bold' },
   monthDayNumSelected: { color: '#fff', fontWeight: 'bold' },
   monthDots: { flexDirection: 'row', gap: 2, marginTop: 2, flexWrap: 'wrap', justifyContent: 'center' },
   monthDot: { width: 6, height: 6, borderRadius: 3 },
@@ -1437,9 +1439,13 @@ const styles = StyleSheet.create({
   legendText: { fontSize: 12, color: '#666' },
   paymentSection: { marginTop: 15, padding: 15, backgroundColor: '#F9F1F3', borderRadius: 8, borderWidth: 1, borderColor: '#EADDE0' },
   monthSummary: { backgroundColor: '#fff', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#e0e8f0', marginTop: 4 },
-  monthSummaryTitle: { fontSize: 15, fontWeight: 'bold', color: '#7A4B56', marginBottom: 12 },
+  monthSummaryTitle: { fontSize: 15, fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 12 },
   monthSummaryRow: { flexDirection: 'row', justifyContent: 'space-around' },
   monthSummaryKpi: { alignItems: 'center' },
-  monthSummaryNum: { fontSize: 28, fontWeight: 'bold', color: '#7A4B56' },
+  monthSummaryNum: { fontSize: 28, fontWeight: 'bold', color: theme.darkTextColor },
   monthSummaryLabel: { fontSize: 12, color: '#888', marginTop: 2 },
 });
+}
+
+
+

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TextInput, TouchableOpacity, Modal } from 'react-native';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot, query , where} from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 // Helper to get start and end dates
@@ -37,6 +38,8 @@ const formatHours = (mins: number) => {
 };
 
 export default function DashboardScreen() {
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
@@ -61,7 +64,7 @@ export default function DashboardScreen() {
   const [newManagementPin, setNewManagementPin] = useState('');
 
   useEffect(() => {
-    const qApps = query(collection(db, 'appointments'));
+    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubApps = onSnapshot(qApps, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -69,14 +72,14 @@ export default function DashboardScreen() {
       setLoading(false);
     });
 
-    const qExp = query(collection(db, 'expenses'));
+    const qExp = query(collection(db, 'expenses'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubExp = onSnapshot(qExp, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
       setExpenses(list);
     });
 
-    const qClients = query(collection(db, 'clients'));
+    const qClients = query(collection(db, 'clients'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubClients = onSnapshot(qClients, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -267,7 +270,7 @@ export default function DashboardScreen() {
       if (vipClient.clientId) {
         await updateDoc(doc(db, 'clients', vipClient.clientId), { vipWelcomeMessageSent: true });
       } else {
-        await addDoc(collection(db, 'clients'), {
+        await addDoc(collection(db, 'clients'), { tenantId, tenantId,
           name: vipClient.name,
           phone: vipClient.phone,
           vipWelcomeMessageSent: true,
@@ -276,7 +279,7 @@ export default function DashboardScreen() {
       }
 
       const { Linking } = require('react-native');
-      const text = `Enhorabuena ${vipClient.name}, tu confianza en Avalon Mystic te ha convertido en Avalon VIP. ¡Disfruta de un 10% de descuento en tu próxima cita! Desde Avalon Mystic agradecemos tu confianza y deseamos seguir creciendo contigo.`;
+      const text = `Enhorabuena ${vipClient.name}, tu confianza en ${theme.appName} te ha convertido en Avalon VIP. ¡Disfruta de un 10% de descuento en tu próxima cita! Desde ${theme.appName} agradecemos tu confianza y deseamos seguir creciendo contigo.`;
       const url = `https://wa.me/${vipClient.phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
       Linking.openURL(url).catch(() => alert('No se pudo abrir WhatsApp.'));
     } catch (e) {
@@ -306,7 +309,7 @@ export default function DashboardScreen() {
 
     try {
         const { getDocs, query, where, writeBatch, doc, getDoc, setDoc } = require('firebase/firestore');
-        const q = query(collection(db, 'appointments'), where('date', '<', thresholdDate));
+        const q = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '<', thresholdDate));
         const snap = await getDocs(q);
         
         if (snap.empty) {
@@ -342,7 +345,7 @@ export default function DashboardScreen() {
 
   const toggleWidget = (key: keyof typeof widgets) => setWidgets(w => ({...w, [key]: !w[key]}));
 
-  if (loading) return <ActivityIndicator size="large" color="#D48A9A" style={{marginTop: 50}} />;
+  if (loading) return <ActivityIndicator size="large" color=theme.primaryColor style={{marginTop: 50}} />;
 
   return (
     <ScrollView style={styles.container}>
@@ -407,7 +410,7 @@ export default function DashboardScreen() {
           </View>
           <View style={styles.metricCard}>
             <Text style={styles.metricLabel}>Citas Totales</Text>
-            <Text style={[styles.metricValue, {color: '#D48A9A'}]}>{stats.clients}</Text>
+            <Text style={[styles.metricValue, {color: theme.primaryColor}]}>{stats.clients}</Text>
           </View>
         </View>
       )}
@@ -448,9 +451,9 @@ export default function DashboardScreen() {
                 </View>
                 <View style={{alignItems: 'flex-end'}}>
                   <Text style={{fontWeight: 'bold', color: '#2ecc71', fontSize: 15}}>{tData.revenue.toFixed(2)} €</Text>
-                  <Text style={{fontSize: 12, color: '#f39c12'}}>⏳ {tData.pending.toFixed(2)} €</Text>
+                  <Text style={{fontSize: 12, color: theme.secondaryColor}}>⏳ {tData.pending.toFixed(2)} €</Text>
                   {tData.payrollPaid > 0 && (
-                    <Text style={{fontSize: 11, color: '#D48A9A', marginTop: 4, fontWeight: 'bold'}}>💰 Nómina: {tData.payrollPaid.toFixed(2)} €</Text>
+                    <Text style={{fontSize: 11, color: theme.primaryColor, marginTop: 4, fontWeight: 'bold'}}>💰 Nómina: {tData.payrollPaid.toFixed(2)} €</Text>
                   )}
                 </View>
               </View>
@@ -463,7 +466,7 @@ export default function DashboardScreen() {
       {/* PAGOS PENDIENTES */}
       {widgets.pending && (
         <View style={styles.card}>
-          <Text style={[styles.cardTitle, {color: '#f39c12'}]}>⏳ Pagos Pendientes</Text>
+          <Text style={[styles.cardTitle, {color: theme.secondaryColor}]}>⏳ Pagos Pendientes</Text>
           {stats.pendingList.length > 0 ? (
             stats.pendingList.map((app: any) => (
               <View key={app.id} style={styles.teamRow}>
@@ -589,7 +592,7 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f2f4f7', padding: 15 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   mainTitle: { fontSize: 24, fontWeight: 'bold', color: '#333' },
@@ -599,7 +602,7 @@ const styles = StyleSheet.create({
   filterBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
   filterBtnActive: { backgroundColor: '#fff', elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: {width: 0, height: 1} },
   filterText: { color: '#666', fontWeight: 'bold', fontSize: 13 },
-  filterTextActive: { color: '#D48A9A', fontWeight: 'bold' },
+  filterTextActive: { color: theme.primaryColor, fontWeight: 'bold' },
 
   metricsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
   metricCard: { flex: 1, backgroundColor: '#fff', borderRadius: 12, padding: 15, marginHorizontal: 4, alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width: 0, height: 2} },
@@ -626,7 +629,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, fontWeight: 'bold', color: '#555', marginBottom: 10 },
   inputRow: { flexDirection: 'row', alignItems: 'center' },
   input: { flex: 1, backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#eee', padding: 10, borderRadius: 8, marginRight: 10 },
-  btnAction: { backgroundColor: '#D48A9A', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8 },
+  btnAction: { backgroundColor: theme.primaryColor, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8 },
   btnText: { color: '#fff', fontWeight: 'bold' },
 
   modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
@@ -636,3 +639,7 @@ const styles = StyleSheet.create({
   modalBtn: { backgroundColor: '#333', paddingVertical: 14, borderRadius: 8, marginTop: 20, alignItems: 'center' },
   modalBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 }
 });
+}
+
+
+

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Image, ScrollView } from 'react-native';
-import { collection, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, orderBy , where} from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAppContext } from '../context/AppContext';
 
 export default function RoleSelectionScreen() {
   const { loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -17,7 +18,7 @@ export default function RoleSelectionScreen() {
 
   useEffect(() => {
     // Note: These will need to be scoped to tenantId in future steps
-    const q = query(collection(db, 'teams'), orderBy('name'));
+    const q = query(collection(db, 'teams'), where('tenantId', '==', tenantId), orderBy('name'));
     const unsubTeams = onSnapshot(q, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -166,7 +167,7 @@ export default function RoleSelectionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0d1b2a' },
   bgCircle1: { position: 'absolute', width: 350, height: 350, borderRadius: 175, backgroundColor: 'rgba(74,155,64,0.12)', top: -80, right: -80 },
   bgCircle2: { position: 'absolute', width: 250, height: 250, borderRadius: 125, backgroundColor: 'rgba(0,42,84,0.4)', bottom: 50, left: -60 },
@@ -203,3 +204,6 @@ const styles = StyleSheet.create({
   ghostBtnText: { color: 'rgba(255,255,255,0.45)', fontWeight: 'bold', fontSize: 14 },
   footer: { color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: 30, fontSize: 12 },
 });
+}
+
+

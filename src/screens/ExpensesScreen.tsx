@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Image, Linking, ScrollView } from 'react-native';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy , where} from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, uploadString } from 'firebase/storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Print from 'expo-print';
@@ -19,6 +20,8 @@ interface Expense {
 }
 
 export default function ExpensesScreen() {
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [concept, setConcept] = useState('');
@@ -31,7 +34,7 @@ export default function ExpensesScreen() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'expenses'), orderBy('date', 'desc'));
+    const q = query(collection(db, 'expenses'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), orderBy('date', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const expensesList: Expense[] = [];
       snapshot.forEach((docSnap) => {
@@ -44,7 +47,7 @@ export default function ExpensesScreen() {
   }, []);
 
   useEffect(() => {
-    const qTeams = query(collection(db, 'teams'));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsub = onSnapshot(qTeams, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -118,7 +121,7 @@ export default function ExpensesScreen() {
         downloadUrl = await getDownloadURL(storageRef);
       }
 
-      await addDoc(collection(db, 'expenses'), {
+      await addDoc(collection(db, 'expenses'), { tenantId, tenantId,
         concept: concept.trim(),
         amount: parseFloat(amount.replace(',', '.')),
         date: date.trim(),
@@ -302,7 +305,7 @@ export default function ExpensesScreen() {
       
       {ticketImage && (
         <View style={{ alignItems: 'center', marginBottom: 15 }}>
-          <Text style={{ color: '#D48A9A', fontWeight: 'bold', marginBottom: 4 }}>✓ Ticket adjuntado correctamente</Text>
+          <Text style={{ color: theme.primaryColor, fontWeight: 'bold', marginBottom: 4 }}>✓ Ticket adjuntado correctamente</Text>
           <Image source={{ uri: ticketImage }} style={styles.previewImg} />
         </View>
       )}
@@ -385,7 +388,7 @@ export default function ExpensesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#f9f9f9' },
   title: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#d9534f' },
   titleList: { fontSize: 18, fontWeight: 'bold', marginTop: 25, marginBottom: 15, color: '#d9534f' },
@@ -398,7 +401,7 @@ const styles = StyleSheet.create({
   teamChipTextActive: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
   teamChipTextInactive: { color: '#555', fontSize: 13 },
   photoBtnSmall: { flex: 1, backgroundColor: '#FDF9fa', borderWidth: 1, borderColor: '#EADDE0', paddingVertical: 12, paddingHorizontal: 5, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  photoBtnText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 13 },
+  photoBtnText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 13 },
   previewImg: { width: 100, height: 100, borderRadius: 8, alignSelf: 'center', marginBottom: 5 },
   buttonAdd: { backgroundColor: '#d9534f', padding: 14, borderRadius: 8, alignItems: 'center' },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
@@ -416,8 +419,12 @@ const styles = StyleSheet.create({
   expenseAmount: { fontSize: 16, fontWeight: 'bold', color: '#d9534f', marginBottom: 6 },
   cardActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   ticketBtn: { backgroundColor: '#F9F1F3', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, borderWidth: 1, borderColor: '#cce0f5' },
-  ticketIcon: { fontSize: 12, color: '#7A4B56', fontWeight: 'bold' },
+  ticketIcon: { fontSize: 12, color: theme.darkTextColor, fontWeight: 'bold' },
   iconBtn: { padding: 4 },
   actionIcon: { fontSize: 16 },
   empty: { color: '#888', fontStyle: 'italic', textAlign: 'center', marginTop: 20 }
 });
+}
+
+
+

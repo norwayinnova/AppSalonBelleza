@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query , where} from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 interface Service {
@@ -12,6 +13,8 @@ interface Service {
 }
 
 export default function ServicesScreen() {
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const [services, setServices] = useState<Service[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [name, setName] = useState('');
@@ -22,7 +25,7 @@ export default function ServicesScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, 'services'));
+    const q = query(collection(db, 'services'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const servicesList: Service[] = [];
       snapshot.forEach((docSnap) => {
@@ -35,7 +38,7 @@ export default function ServicesScreen() {
       setLoading(false);
     });
 
-    const qTeams = query(collection(db, 'teams'));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unTeams = onSnapshot(qTeams, snap => {
       const tList: any[] = [];
       snap.forEach(d => tList.push({ id: d.id, ...d.data() }));
@@ -70,7 +73,7 @@ export default function ServicesScreen() {
         });
         setEditingId(null);
       } else {
-        await addDoc(collection(db, 'services'), {
+        await addDoc(collection(db, 'services'), { tenantId, tenantId,
           ...serviceData,
           createdAt: new Date()
         });
@@ -141,7 +144,7 @@ export default function ServicesScreen() {
       />
 
       <View style={{ marginBottom: 15 }}>
-        <Text style={{ fontWeight: 'bold', color: '#7A4B56', marginBottom: 5 }}>¿Qué empleadas realizan este servicio?</Text>
+        <Text style={{ fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 5 }}>¿Qué empleadas realizan este servicio?</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {teams.map(t => {
             const isSelected = selectedTeams.includes(t.name);
@@ -184,7 +187,7 @@ export default function ServicesScreen() {
 
       <Text style={styles.titleList}>Servicios Disponibles ({services.length})</Text>
       {loading ? (
-        <ActivityIndicator size="large" color="#D48A9A" />
+        <ActivityIndicator size="large" color=theme.primaryColor />
       ) : (
         <FlatList
           data={services}
@@ -215,31 +218,35 @@ export default function ServicesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#f9f9f9' },
-  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#7A4B56' },
-  titleList: { fontSize: 18, fontWeight: 'bold', marginTop: 25, marginBottom: 15, color: '#7A4B56' },
+  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: theme.darkTextColor },
+  titleList: { fontSize: 18, fontWeight: 'bold', marginTop: 25, marginBottom: 15, color: theme.darkTextColor },
   input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', padding: 12, borderRadius: 8, marginBottom: 12, fontSize: 15 },
   actionRow: { flexDirection: 'row', gap: 10 },
   button: { flex: 1, padding: 14, borderRadius: 8, alignItems: 'center' },
-  buttonAdd: { backgroundColor: '#D48A9A' },
-  buttonEdit: { backgroundColor: '#7A4B56' },
+  buttonAdd: { backgroundColor: theme.primaryColor },
+  buttonEdit: { backgroundColor: theme.darkTextColor },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   cancelBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d9534f', padding: 14, borderRadius: 8, alignItems: 'center', width: 100 },
   cancelBtnText: { color: '#d9534f', fontWeight: 'bold', fontSize: 15 },
   serviceCard: { backgroundColor: '#fff', padding: 15, borderRadius: 8, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 1, borderWidth: 1, borderColor: '#e0e0e0' },
-  serviceCardEditing: { borderColor: '#7A4B56', borderWidth: 2, backgroundColor: '#f0f7ff' },
+  serviceCardEditing: { borderColor: theme.darkTextColor, borderWidth: 2, backgroundColor: '#f0f7ff' },
   serviceInfo: { flex: 1 },
-  serviceName: { fontSize: 16, fontWeight: 'bold', color: '#7A4B56', marginBottom: 4 },
+  serviceName: { fontSize: 16, fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 4 },
   badgeRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  serviceDuration: { color: '#D48A9A', fontWeight: 'bold', fontSize: 14 },
-  servicePrice: { color: '#7A4B56', fontWeight: 'bold', fontSize: 14, backgroundColor: '#F9F1F3', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
+  serviceDuration: { color: theme.primaryColor, fontWeight: 'bold', fontSize: 14 },
+  servicePrice: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 14, backgroundColor: '#F9F1F3', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
   cardActions: { flexDirection: 'row', gap: 8 },
   iconBtn: { padding: 10, backgroundColor: '#FFF5F7', borderRadius: 8 },
   actionIcon: { fontSize: 16 },
   empty: { textAlign: 'center', marginTop: 30, color: '#aaa', fontStyle: 'italic' },
   chip: { paddingVertical: 8, paddingHorizontal: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 20 },
-  chipSelected: { backgroundColor: '#FFF5F7', borderColor: '#D48A9A' },
+  chipSelected: { backgroundColor: '#FFF5F7', borderColor: theme.primaryColor },
   chipTextUnselected: { color: '#555' },
-  chipTextSelected: { color: '#D48A9A', fontWeight: 'bold' }
+  chipTextSelected: { color: theme.primaryColor, fontWeight: 'bold' }
 });
+}
+
+
+

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../context/AppContext';
 import {
   View,
   Text,
@@ -15,7 +16,8 @@ import { Calendar } from 'react-native-calendars';
 import { db } from '../config/firebase';
 
 export default function AppointmentsScreen({ route, navigation }: any) {
-  const { role, teamName } = route?.params || { role: 'admin', teamName: null };
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const isAdmin = role === 'admin' || role === 'management';
 
   const [client, setClient] = useState('');
@@ -48,7 +50,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
 
   // 1. Cargar Equipos dinámicos desde Firestore
   useEffect(() => {
-    const qTeams = query(collection(db, 'teams'));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubscribeTeams = onSnapshot(qTeams, (snapshot) => {
       const teamsList: any[] = [];
       snapshot.forEach(docSnap => teamsList.push({ id: docSnap.id, ...docSnap.data() }));
@@ -63,7 +65,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
 
   // 2. Cargar Servicios
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'services'), (snapshot) => {
+    const unsubscribe = onSnapshot(query(collection(db, 'services'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId)), (snapshot) => {
       const srvs: any[] = [];
       snapshot.forEach(docSnap => srvs.push({ id: docSnap.id, ...docSnap.data() }));
       setServices(srvs);
@@ -73,7 +75,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
 
   // 3. Cargar Citas para el día seleccionado
   useEffect(() => {
-    const q = query(collection(db, 'appointments'), where('date', '==', date));
+    const q = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', date));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const appsList: any[] = [];
       snapshot.forEach(docSnap => appsList.push({ id: docSnap.id, ...docSnap.data() }));
@@ -91,7 +93,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
     const cleanPhone = text.trim();
     if (cleanPhone.length >= 6) {
       try {
-        const qClient = query(collection(db, 'clients'), where('phone', '==', cleanPhone));
+        const qClient = query(collection(db, 'clients'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('phone', '==', cleanPhone));
         const snap = await getDocs(qClient);
         
         let clientFound: any = null;
@@ -102,7 +104,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
         }
 
         // Buscar historial de citas en appointments (incluso si no está guardado en clients)
-        const qApps = query(collection(db, 'appointments'), where('phone', '==', cleanPhone));
+        const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('phone', '==', cleanPhone));
         const snapApps = await getDocs(qApps);
         
         let cancelledCount = 0;
@@ -294,7 +296,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
       }
 
       // 1. Guardar la cita
-      await addDoc(collection(db, 'appointments'), {
+      await addDoc(collection(db, 'appointments'), { tenantId, tenantId,
         client: cleanClient,
         phone: cleanPhone,
         date,
@@ -311,7 +313,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
 
       // 2. Gestionar la ficha de Cliente (Crear nuevo o Actualizar existente)
       if (cleanPhone) {
-        const qClient = query(collection(db, 'clients'), where('phone', '==', cleanPhone));
+        const qClient = query(collection(db, 'clients'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('phone', '==', cleanPhone));
         const snap = await getDocs(qClient);
 
         if (!snap.empty) {
@@ -326,7 +328,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
           });
         } else {
           // Cliente nuevo: registrar en cartera de clientes
-          await addDoc(collection(db, 'clients'), {
+          await addDoc(collection(db, 'clients'), { tenantId, tenantId,
             name: cleanClient,
             phone: cleanPhone,
             address: finalAddress,
@@ -510,8 +512,8 @@ export default function AppointmentsScreen({ route, navigation }: any) {
         <View style={styles.calendarContainer}>
           <Calendar
             onDayPress={(day: any) => { setDate(day.dateString); setShowCalendar(false); }}
-            markedDates={{ [date]: { selected: true, selectedColor: '#D48A9A' } }}
-            theme={{ todayTextColor: '#7A4B56', arrowColor: '#7A4B56' }}
+            markedDates={{ [date]: { selected: true, selectedColor: theme.primaryColor } }}
+            theme={{ todayTextColor: theme.darkTextColor, arrowColor: theme.darkTextColor }}
           />
         </View>
       )}
@@ -560,13 +562,13 @@ export default function AppointmentsScreen({ route, navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#f9f9f9' },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 15, color: '#7A4B56' },
-  subtitle: { fontSize: 16, fontWeight: 'bold', marginTop: 10, marginBottom: 10, color: '#7A4B56' },
-  inputLabel: { fontSize: 13, fontWeight: 'bold', color: '#7A4B56', marginBottom: 4 },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 15, color: theme.darkTextColor },
+  subtitle: { fontSize: 16, fontWeight: 'bold', marginTop: 10, marginBottom: 10, color: theme.darkTextColor },
+  inputLabel: { fontSize: 13, fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 4 },
   input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', padding: 12, borderRadius: 8, fontSize: 15 },
-  inputValidated: { borderColor: '#D48A9A', borderWidth: 2, backgroundColor: '#fafffa' },
+  inputValidated: { borderColor: theme.primaryColor, borderWidth: 2, backgroundColor: '#fafffa' },
   
   existingClientBox: {
     backgroundColor: '#e8f4fd',
@@ -577,27 +579,27 @@ const styles = StyleSheet.create({
     marginTop: 6
   },
   existingClientText: { color: '#0c5460', fontWeight: 'bold', fontSize: 13, marginBottom: 6 },
-  autofillBtn: { backgroundColor: '#7A4B56', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6, alignItems: 'center' },
+  autofillBtn: { backgroundColor: theme.darkTextColor, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6, alignItems: 'center' },
   autofillBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
 
   // Validación de Dirección
   addressSection: { marginBottom: 12 },
   addressInputRow: { flexDirection: 'row', gap: 6, alignItems: 'center', marginBottom: 6 },
-  validateBtn: { backgroundColor: '#D48A9A', paddingHorizontal: 12, paddingVertical: 12, borderRadius: 8, justifyContent: 'center' },
+  validateBtn: { backgroundColor: theme.primaryColor, paddingHorizontal: 12, paddingVertical: 12, borderRadius: 8, justifyContent: 'center' },
   validateBtnText: { color: '#ffffff', fontWeight: 'bold', fontSize: 13 },
-  mapsVerifyBtn: { backgroundColor: '#F9F1F3', borderWidth: 1, borderColor: '#7A4B56', paddingHorizontal: 10, paddingVertical: 12, borderRadius: 8, justifyContent: 'center' },
-  mapsVerifyText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 13 },
+  mapsVerifyBtn: { backgroundColor: '#F9F1F3', borderWidth: 1, borderColor: theme.darkTextColor, paddingHorizontal: 10, paddingVertical: 12, borderRadius: 8, justifyContent: 'center' },
+  mapsVerifyText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 13 },
   validatingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginVertical: 4 },
   validatingText: { color: '#666', fontSize: 12, fontStyle: 'italic' },
   suggestionsCard: { backgroundColor: '#ffffff', borderRadius: 8, borderWidth: 1, borderColor: '#E8CED4', marginTop: 4, elevation: 4, shadowOpacity: 0.15 },
-  suggestionsHeader: { backgroundColor: '#f0f6fc', paddingHorizontal: 12, paddingVertical: 8, fontWeight: 'bold', color: '#7A4B56', fontSize: 12, borderTopLeftRadius: 7, borderTopRightRadius: 7 },
+  suggestionsHeader: { backgroundColor: '#f0f6fc', paddingHorizontal: 12, paddingVertical: 8, fontWeight: 'bold', color: theme.darkTextColor, fontSize: 12, borderTopLeftRadius: 7, borderTopRightRadius: 7 },
   suggestionItem: { padding: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  suggestionItemTitle: { fontWeight: 'bold', color: '#7A4B56', fontSize: 14 },
+  suggestionItemTitle: { fontWeight: 'bold', color: theme.darkTextColor, fontSize: 14 },
   suggestionItemSubtitle: { color: '#555', fontSize: 12, marginTop: 2 },
   validatedBadge: { backgroundColor: '#FFF5F7', borderWidth: 1, borderColor: '#a3d9a3', padding: 8, borderRadius: 6, marginTop: 4 },
-  validatedBadgeText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 12 },
+  validatedBadgeText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 12 },
 
-  smartButton: { backgroundColor: '#7A4B56', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 15 },
+  smartButton: { backgroundColor: theme.darkTextColor, padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 15 },
   smartButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   suggestionBox: { backgroundColor: '#e3f2fd', padding: 15, borderRadius: 8, borderWidth: 1, borderColor: '#90caf9', marginBottom: 15 },
   suggestionText: { color: '#0d47a1', fontSize: 14, marginBottom: 10, lineHeight: 20 },
@@ -605,7 +607,7 @@ const styles = StyleSheet.create({
   applyBtnText: { color: '#fff', fontWeight: 'bold' },
   scrollRow: { flexGrow: 0, marginBottom: 15 },
   chipBtn: { paddingVertical: 10, paddingHorizontal: 15, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 20, marginRight: 10, justifyContent: 'center' },
-  chipSelected: { paddingVertical: 10, paddingHorizontal: 15, backgroundColor: '#7A4B56', borderWidth: 1, borderColor: '#7A4B56', borderRadius: 20, marginRight: 10, justifyContent: 'center' },
+  chipSelected: { paddingVertical: 10, paddingHorizontal: 15, backgroundColor: theme.darkTextColor, borderWidth: 1, borderColor: theme.darkTextColor, borderRadius: 20, marginRight: 10, justifyContent: 'center' },
   textSelected: { color: '#fff', fontWeight: 'bold' },
   textUnselected: { color: '#333' },
   chipAvailable: { paddingVertical: 10, paddingHorizontal: 15, backgroundColor: '#e6f7e6', borderWidth: 1, borderColor: '#4a9b40', borderRadius: 20, marginRight: 10, justifyContent: 'center' },
@@ -613,20 +615,24 @@ const styles = StyleSheet.create({
   chipConflict: { paddingVertical: 10, paddingHorizontal: 15, backgroundColor: '#ffe5e5', borderWidth: 1, borderColor: '#d9534f', borderRadius: 20, marginRight: 10, justifyContent: 'center', opacity: 0.8 },
   textConflict: { color: '#d9534f', textDecorationLine: 'line-through' },
   dropdownBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', padding: 15, borderRadius: 8, marginBottom: 10, alignItems: 'center' },
-  dropdownText: { color: '#7A4B56', fontWeight: 'bold', fontSize: 16 },
+  dropdownText: { color: theme.darkTextColor, fontWeight: 'bold', fontSize: 16 },
   dropdownList: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#eee', borderRadius: 8, marginTop: 5, elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: {width: 0, height: 2} },
   dropdownItem: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#f5f5f5' },
   dropdownItemSelected: { backgroundColor: '#FFF5F7' },
   dropdownItemText: { fontSize: 15, color: '#333' },
-  dropdownItemTextSelected: { fontSize: 15, color: '#D48A9A', fontWeight: 'bold' },
+  dropdownItemTextSelected: { fontSize: 15, color: theme.primaryColor, fontWeight: 'bold' },
   timeSlot: { borderWidth: 1, borderColor: '#ccc', padding: 10, borderRadius: 8, margin: 5, width: '21%', alignItems: 'center' },
-  timeSlotSelected: { backgroundColor: '#D48A9A', borderColor: '#D48A9A' },
+  timeSlotSelected: { backgroundColor: theme.primaryColor, borderColor: theme.primaryColor },
   timeSlotText: { color: '#555' },
   timeSlotTextSelected: { color: '#fff', fontWeight: 'bold' },
   calendarContainer: { borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: '#ddd', marginBottom: 10 },
   buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 15, marginBottom: 40 },
-  saveButton: { backgroundColor: '#D48A9A', padding: 15, borderRadius: 8, alignItems: 'center', flex: 1, marginLeft: 10 },
+  saveButton: { backgroundColor: theme.primaryColor, padding: 15, borderRadius: 8, alignItems: 'center', flex: 1, marginLeft: 10 },
   saveButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   cancelButton: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d9534f', padding: 15, borderRadius: 8, alignItems: 'center', flex: 1, marginRight: 10 },
   cancelButtonText: { color: '#d9534f', fontWeight: 'bold', fontSize: 16 }
 });
+}
+
+
+

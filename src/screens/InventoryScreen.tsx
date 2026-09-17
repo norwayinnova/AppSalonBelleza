@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, ScrollView } from 'react-native';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, increment } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, increment , where} from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 interface InventoryItem {
@@ -15,7 +16,8 @@ interface InventoryItem {
 }
 
 export default function InventoryScreen({ route }: any) {
-  const { role, teamName } = route?.params || { role: 'admin', teamName: null };
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const isAdmin = role === 'admin';
 
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -32,7 +34,7 @@ export default function InventoryScreen({ route }: any) {
   const [activeTab, setActiveTab] = useState<'maquinaria' | 'productos' | 'otros'>('productos');
 
   useEffect(() => {
-    const q = query(collection(db, 'inventory'), orderBy('name', 'asc'));
+    const q = query(collection(db, 'inventory'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), orderBy('name', 'asc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: InventoryItem[] = [];
       snapshot.forEach((docSnap) => {
@@ -45,7 +47,7 @@ export default function InventoryScreen({ route }: any) {
   }, []);
 
   useEffect(() => {
-    const qTeams = query(collection(db, 'teams'));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsub = onSnapshot(qTeams, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -98,7 +100,7 @@ export default function InventoryScreen({ route }: any) {
           createdAt: new Date(),
           ...(activeTab === 'maquinaria' ? { totalHours: 0 } : { stock: 0, minStockAlert: parsedMinStock })
         };
-        await addDoc(collection(db, 'inventory'), newItem);
+        await addDoc(collection(db, 'inventory'), { tenantId, tenantId, ...newItem });
       }
       cancelEdit();
     } catch (error) {
@@ -199,7 +201,7 @@ export default function InventoryScreen({ route }: any) {
 
       {/* Lista de Inventario */}
       {loading ? (
-        <ActivityIndicator size="large" color="#7A4B56" />
+        <ActivityIndicator size="large" color=theme.darkTextColor />
       ) : (
         <FlatList
           data={filteredItems}
@@ -213,7 +215,7 @@ export default function InventoryScreen({ route }: any) {
                   <Text style={styles.itemTeam}>{item.team === 'Oficina/General' ? '🏢 General' : `🚐 ${item.team}`}</Text>
                   
                   {item.category === 'maquinaria' ? (
-                    <Text style={styles.itemStat}>Uso acumulado: <Text style={{fontWeight:'bold', color:'#7A4B56'}}>{item.totalHours || 0} horas</Text></Text>
+                    <Text style={styles.itemStat}>Uso acumulado: <Text style={{fontWeight:'bold', color:theme.darkTextColor}}>{item.totalHours || 0} horas</Text></Text>
                   ) : (
                     <Text style={[styles.itemStat, isAlert && {color: '#d9534f', fontWeight: 'bold'}]}>
                       Stock actual: <Text style={{fontWeight:'bold'}}>{item.stock || 0} u.</Text>
@@ -260,14 +262,14 @@ export default function InventoryScreen({ route }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#f9f9f9' },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: '#7A4B56' },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: theme.darkTextColor },
   tabsContainer: { flexDirection: 'row', marginBottom: 15, backgroundColor: '#fff', borderRadius: 8, padding: 4, elevation: 1 },
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 6 },
   tabActive: { backgroundColor: '#F9F1F3' },
   tabText: { color: '#555', fontWeight: '600' },
-  tabTextActive: { color: '#7A4B56', fontWeight: 'bold' },
+  tabTextActive: { color: theme.darkTextColor, fontWeight: 'bold' },
   
   formCard: { backgroundColor: '#fff', padding: 15, borderRadius: 8, marginBottom: 20, elevation: 1 },
   formTitle: { fontSize: 14, fontWeight: 'bold', color: '#555', marginBottom: 10 },
@@ -276,14 +278,14 @@ const styles = StyleSheet.create({
   label: { fontSize: 12, fontWeight: 'bold', color: '#555', marginBottom: 6, marginTop: 4 },
   teamScrollRow: { marginBottom: 15, maxHeight: 40 },
   teamChip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, borderWidth: 1, borderColor: '#ddd', backgroundColor: '#f9f9f9', marginRight: 8, height: 35, justifyContent: 'center' },
-  teamChipActive: { backgroundColor: '#7A4B56', borderColor: '#7A4B56' },
+  teamChipActive: { backgroundColor: theme.darkTextColor, borderColor: theme.darkTextColor },
   teamChipTextActive: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
   teamChipTextInactive: { color: '#555', fontSize: 12 },
   
-  buttonAdd: { backgroundColor: '#7A4B56', padding: 12, borderRadius: 8, alignItems: 'center' },
+  buttonAdd: { backgroundColor: theme.darkTextColor, padding: 12, borderRadius: 8, alignItems: 'center' },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   
-  itemCard: { backgroundColor: '#fff', padding: 15, borderRadius: 8, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderLeftWidth: 4, borderLeftColor: '#D48A9A', elevation: 1 },
+  itemCard: { backgroundColor: '#fff', padding: 15, borderRadius: 8, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderLeftWidth: 4, borderLeftColor: theme.primaryColor, elevation: 1 },
   itemCardAlert: { borderLeftColor: '#d9534f', backgroundColor: '#fffafa' },
   itemInfo: { flex: 1 },
   itemName: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 2 },
@@ -291,10 +293,15 @@ const styles = StyleSheet.create({
   itemStat: { fontSize: 13, color: '#555' },
   
   itemActions: { flexDirection: 'row', gap: 6, alignItems: 'center' },
-  actionBtnGreen: { backgroundColor: '#FFF5F7', borderWidth: 1, borderColor: '#D48A9A', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6 },
+  actionBtnGreen: { backgroundColor: '#FFF5F7', borderWidth: 1, borderColor: theme.primaryColor, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6 },
   actionBtnRed: { backgroundColor: '#fdedec', borderWidth: 1, borderColor: '#e74c3c', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6 },
-  actionBtnBlue: { backgroundColor: '#FFF5F7', borderWidth: 1, borderColor: '#D48A9A', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6 },
+  actionBtnBlue: { backgroundColor: '#FFF5F7', borderWidth: 1, borderColor: theme.primaryColor, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6 },
   actionBtnText: { fontSize: 12, fontWeight: 'bold', color: '#333' },
   iconBtn: { padding: 4, marginLeft: 4 },
   empty: { color: '#888', fontStyle: 'italic', textAlign: 'center', marginTop: 20 }
 });
+}
+
+
+
+

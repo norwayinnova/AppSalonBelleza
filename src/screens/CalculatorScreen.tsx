@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot, query , where} from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 const getStartOfWeek = (date: Date) => {
@@ -13,6 +14,8 @@ const getStartOfWeek = (date: Date) => {
 const formatYMD = (d: Date) => d.toISOString().split('T')[0];
 
 export default function CalculatorScreen() {
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -22,7 +25,7 @@ export default function CalculatorScreen() {
   const [expenses, setExpenses] = useState<any[]>([]);
 
   useEffect(() => {
-    const qApps = query(collection(db, 'appointments'));
+    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubApps = onSnapshot(qApps, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -30,7 +33,7 @@ export default function CalculatorScreen() {
       setLoading(false);
     });
     
-    const qExp = query(collection(db, 'expenses'));
+    const qExp = query(collection(db, 'expenses'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubExp = onSnapshot(qExp, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -46,7 +49,7 @@ export default function CalculatorScreen() {
 
     try {
       const { addDoc } = require('firebase/firestore');
-      await addDoc(collection(db, 'expenses'), {
+      await addDoc(collection(db, 'expenses'), { tenantId, tenantId,
         amount,
         category: 'Nómina',
         description: `Nómina ${team} - Semana ${weekStart}`,
@@ -92,7 +95,7 @@ export default function CalculatorScreen() {
     setPercentages(prev => ({ ...prev, [team]: val }));
   };
 
-  if (loading) return <ActivityIndicator size="large" color="#D48A9A" style={{marginTop: 50}} />;
+  if (loading) return <ActivityIndicator size="large" color=theme.primaryColor style={{marginTop: 50}} />;
 
   const teams = Object.keys(stats.byTeam).sort();
 
@@ -184,7 +187,7 @@ export default function CalculatorScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f2f4f7', padding: 15 },
   header: { marginBottom: 20 },
   mainTitle: { fontSize: 24, fontWeight: 'bold', color: '#333' },
@@ -194,7 +197,7 @@ const styles = StyleSheet.create({
   weekBtn: { padding: 10, backgroundColor: '#f5f7fa', borderRadius: 8 },
   weekBtnText: { color: '#333', fontWeight: 'bold', fontSize: 13 },
   weekInfo: { alignItems: 'center' },
-  weekDates: { fontWeight: 'bold', color: '#D48A9A', fontSize: 15 },
+  weekDates: { fontWeight: 'bold', color: theme.primaryColor, fontSize: 15 },
   weekDatesText: { fontSize: 11, color: '#999' },
 
   card: { backgroundColor: '#fff', borderRadius: 14, padding: 18, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width: 0, height: 2} },
@@ -210,9 +213,9 @@ const styles = StyleSheet.create({
   label: { fontSize: 12, color: '#666', marginBottom: 6, fontWeight: 'bold' },
   revenueText: { fontSize: 18, fontWeight: 'bold', color: '#2ecc71' },
   
-  input: { backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#eee', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8, width: 80, textAlign: 'center', fontSize: 16, fontWeight: 'bold', color: '#D48A9A' },
+  input: { backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#eee', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8, width: 80, textAlign: 'center', fontSize: 16, fontWeight: 'bold', color: theme.primaryColor },
   
-  payoutText: { fontSize: 22, fontWeight: 'bold', color: '#D48A9A' },
+  payoutText: { fontSize: 22, fontWeight: 'bold', color: theme.primaryColor },
   
   payBtn: { backgroundColor: '#2ecc71', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6, marginTop: 8 },
   payBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
@@ -222,3 +225,7 @@ const styles = StyleSheet.create({
 
   noDataText: { color: '#888', fontStyle: 'italic', textAlign: 'center', marginVertical: 10 },
 });
+}
+
+
+

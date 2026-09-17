@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../context/AppContext';
 import {
   View,
   Text,
@@ -12,7 +13,7 @@ import {
   Platform,
   UIManager
 } from 'react-native';
-import { collection, onSnapshot, query, deleteDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot, query, deleteDoc, doc , where} from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -46,6 +47,8 @@ interface Appointment {
 }
 
 export default function ClientsScreen() {
+  const { role, teamName, tenantId, theme } = useAppContext();
+  const styles = getStyles(theme);
   const [clients, setClients] = useState<Client[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,7 +57,7 @@ export default function ClientsScreen() {
 
   // 1. Cargar Clientes
   useEffect(() => {
-    const qClients = query(collection(db, 'clients'));
+    const qClients = query(collection(db, 'clients'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubscribeClients = onSnapshot(qClients, (snapshot) => {
       const list: Client[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() } as Client));
@@ -67,7 +70,7 @@ export default function ClientsScreen() {
 
   // 2. Cargar Citas
   useEffect(() => {
-    const qApps = query(collection(db, 'appointments'));
+    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubscribeApps = onSnapshot(qApps, (snapshot) => {
       const list: Appointment[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() } as Appointment));
@@ -136,7 +139,7 @@ export default function ClientsScreen() {
       />
 
       {loading ? (
-        <ActivityIndicator size="large" color="#D48A9A" style={{ marginTop: 30 }} />
+        <ActivityIndicator size="large" color=theme.primaryColor style={{ marginTop: 30 }} />
       ) : (
         <FlatList
           data={filteredClients}
@@ -202,7 +205,7 @@ export default function ClientsScreen() {
                           <Text style={[styles.historyStatus, 
                             app.status === 'completed' ? {color: '#2ecc71'} : 
                             app.status === 'cancelled' ? {color: '#e74c3c'} : 
-                            {color: '#f39c12'}
+                            {color: theme.secondaryColor}
                           ]}>
                             {app.status === 'completed' ? `Completado (${app.finalPrice || app.price}€)` : 
                              app.status === 'cancelled' ? 'Cancelado' : 'Pendiente'}
@@ -226,7 +229,7 @@ export default function ClientsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(theme: any) { return StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f2f4f7', padding: 15 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 15 },
   searchInput: {
@@ -273,12 +276,12 @@ const styles = StyleSheet.create({
     marginRight: 15,
     borderWidth: 1,
     borderColor: '#ffcce0',
-    shadowColor: '#D48A9A',
+    shadowColor: theme.primaryColor,
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
   },
-  avatarText: { fontSize: 18, fontWeight: 'bold', color: '#D48A9A' },
+  avatarText: { fontSize: 18, fontWeight: 'bold', color: theme.primaryColor },
   
   clientInfo: { flex: 1, justifyContent: 'center' },
   clientName: { fontSize: 18, fontWeight: 'bold', color: '#2c3e50' },
@@ -287,7 +290,7 @@ const styles = StyleSheet.create({
   badgesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 6 },
   badgeText: { fontSize: 12, color: '#7f8c8d' },
   
-  vipTag: { color: '#f39c12', fontWeight: 'bold', fontSize: 13, marginTop: 5 },
+  vipTag: { color: theme.secondaryColor, fontWeight: 'bold', fontSize: 13, marginTop: 5 },
   problemTag: { color: '#c0392b', fontWeight: 'bold', fontSize: 12, marginTop: 5 },
   
   deleteBtn: { padding: 8, backgroundColor: 'rgba(255,0,0,0.05)', borderRadius: 20, marginLeft: 10 },
@@ -302,3 +305,7 @@ const styles = StyleSheet.create({
   noHistory: { fontSize: 13, color: '#888', fontStyle: 'italic' },
   empty: { textAlign: 'center', color: '#888', marginTop: 30, fontStyle: 'italic', fontSize: 15 }
 });
+}
+
+
+
