@@ -62,6 +62,8 @@ interface AppContextType {
   teamName: string | null;
   tenantId: string;
   theme: AppTheme;
+  appMode: 'client' | 'professional' | null;
+  setAppMode: (mode: 'client' | 'professional' | null) => void;
   setTenantId: (id: string) => void;
   loginAsAdmin: () => void;
   loginAsManagement: () => void;
@@ -77,6 +79,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<Role>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
   
+  const [appMode, setAppModeState] = useState<'client' | 'professional' | null>(null);
   const [tenantId, setTenantIdState] = useState<string>('');
   const [theme, setThemeState] = useState<AppTheme>(defaultThemes['beautytime']);
   
@@ -98,6 +101,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     return () => unsubscribe();
   }, [tenantId]);
+
+  const setAppMode = (mode: 'client' | 'professional' | null) => {
+    setAppModeState(mode);
+    if (!mode) {
+      setTenantIdState('');
+      setRole(null);
+    }
+  };
 
   const setTenantId = (id: string) => {
     setTenantIdState(id);
@@ -128,7 +139,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AppContext.Provider value={{ role, teamName, tenantId, theme, setTenantId, loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, logout, showToast }}>
+    <AppContext.Provider value={{ role, teamName, tenantId, theme, appMode, setAppMode, setTenantId, loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, logout, showToast }}>
       {children}
       {toastMsg ? (
         <Animated.View style={[

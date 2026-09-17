@@ -1,7 +1,9 @@
-﻿import React, { useEffect } from 'react';
-import { Image, View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform } from 'react-native';
+﻿import React from 'react';
+import { Image, View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
 import TenantLoginScreen from '../screens/TenantLoginScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
+import MarketplaceScreen from '../screens/MarketplaceScreen';
 import { useAppContext } from '../context/AppContext';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -24,175 +26,129 @@ const Stack = createNativeStackNavigator();
 function LogoTitle() {
   const { theme } = useAppContext();
   return (
-    <View style={styles.logoContainer}>
-      <Image
-        style={styles.logoImage}
-        source={theme.logoUrl ? { uri: theme.logoUrl } : theme.logoPath || require("../../assets/logo.jpg")}
-        resizeMode="contain"
+    <View style={styles.logoTitleContainer}>
+      <Image 
+        style={styles.logo} 
+        source={theme.logoUrl ? { uri: theme.logoUrl } : theme.logoPath || require('../../assets/logo.jpg')} 
+        resizeMode="contain" 
       />
+      <Text style={[styles.headerTitle, {color: theme.lightTextColor}]}>{theme.appName}</Text>
     </View>
-  );
-}
-
-function CustomTopTabBar({ state, descriptors, navigation }: any) {
-  const { theme } = useAppContext();
-  return (
-    <View style={styles.tabBarWrapper}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabScrollContent}
-      >
-        {state.routes.map((route: any, index: number) => {
-          const { options } = descriptors[route.key];
-          const label =
-            options.tabBarLabel !== undefined
-              ? options.tabBarLabel
-              : options.title !== undefined
-              ? options.title
-              : route.name;
-
-          const isFocused = state.index === index;
-
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
-
-          return (
-            <TouchableOpacity
-              key={route.key}
-              onPress={onPress}
-              style={[
-                styles.tabButton,
-                isFocused ? { borderBottomColor: theme.primaryColor } : styles.tabButtonInactive
-              ]}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  isFocused ? { color: theme.primaryColor, fontWeight: 'bold' } : styles.tabTextInactive
-                ]}
-              >
-                {label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </View>
-  );
-}
-
-function TopTabs() {
-  const { role, teamName } = useAppContext();
-  const isAdmin = role === 'admin';
-  const isManagement = role === 'management';
-  const showAdminOnly = isAdmin;
-
-  return (
-    <Tab.Navigator tabBar={(props) => <CustomTopTabBar {...props} />} screenOptions={{ swipeEnabled: false }}>
-      {showAdminOnly && <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: '📊 Dashboard' }} />}
-      <Tab.Screen name="Calendar" component={CalendarScreen} options={{ tabBarLabel: '📅 Calendario' }} initialParams={{ role, teamName }} />
-      <Tab.Screen name="Appointments" component={AppointmentsScreen} options={{ tabBarLabel: '➕ Nueva Cita' }} initialParams={{ role, teamName }} />
-      {isAdmin && <Tab.Screen name="Clients" component={ClientsScreen} options={{ tabBarLabel: '👥 Clientes' }} />}
-      {(isAdmin || isManagement) && <Tab.Screen name="Services" component={ServicesScreen} options={{ tabBarLabel: '🧹 Servicios' }} />}
-      {isAdmin && <Tab.Screen name="Expenses" component={ExpensesScreen} options={{ tabBarLabel: '💸 Gastos' }} />}
-      {showAdminOnly && <Tab.Screen name="Calculator" component={CalculatorScreen} options={{ tabBarLabel: '🧮 Calculadora' }} />}
-      {showAdminOnly && <Tab.Screen name="Promotions" component={PromotionsScreen} options={{ tabBarLabel: '📢 Promociones' }} />}
-      {showAdminOnly && <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: 'Ajustes' }} />}
-      <Tab.Screen name="Inventory" component={InventoryScreen} options={{ tabBarLabel: '📦 Inventario' }} initialParams={{ role, teamName }} />
-    </Tab.Navigator>
   );
 }
 
 export default function AppNavigator() {
-  const { role, logout, loginAsClient, theme, tenantId } = useAppContext();
+  const { role, logout, appMode, setAppMode, tenantId, setTenantId, theme } = useAppContext();
 
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      const url = window.location.href;
-      if (url.includes('?reserva') || url.includes('/reserva')) {
-        loginAsClient();
-      }
-    }
-  }, []);
+  const isAdmin = role === 'admin';
+  const isManagement = role === 'management';
+  const showAdminOnly = isAdmin;
+
+  const handleLogout = () => {
+    logout();
+    setTenantId('');
+    setAppMode(null);
+  };
 
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerStyle: { backgroundColor: '#FFFFFF' },
-          headerTitleAlign: 'center',
-          headerTitle: () => (
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-              <LogoTitle />
-            </View>
-          ),
-          headerRight: () => role ? (
-            <TouchableOpacity onPress={logout} style={{marginRight: 15, padding: 6, backgroundColor: theme.primaryColor + '1A', borderRadius: 8, borderWidth: 1, borderColor: theme.primaryColor + '4D'}}>
-              <Text style={{color: theme.primaryColor, fontWeight: 'bold', fontSize: 13}}>Salir 🔒</Text>
-            </TouchableOpacity>
-          ) : null
-        }}
-      >
-        {!tenantId ? (
-          <Stack.Screen name="TenantLogin" component={TenantLoginScreen} options={{ headerShown: false }} />
-        ) : !role ? (
-          <Stack.Screen name="Login" component={RoleSelectionScreen} options={{ headerShown: false }} />
-        ) : role === 'cliente' ? (
-          <Stack.Screen name="ClientBooking" component={ClientBookingScreen} options={{ title: 'Reserva Online' }} />
+      <Stack.Navigator>
+        
+        {/* PANTALLA INICIAL DE SELECCIÓN DE MODO */}
+        {!appMode ? (
+          <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
+        ) : appMode === 'professional' ? (
+          
+          /* FLUJO B2B: PROFESIONALES */
+          !tenantId ? (
+            <Stack.Screen name="TenantLogin" component={TenantLoginScreen} options={{ headerShown: false }} />
+          ) : !role ? (
+            <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} options={{ headerShown: false }} />
+          ) : (
+            <Stack.Screen 
+              name="MainTabs" 
+              options={{
+                headerTitle: () => <LogoTitle />,
+                headerStyle: { backgroundColor: theme.primaryColor },
+                headerTintColor: theme.lightTextColor,
+                headerRight: () => (
+                  <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+                    <Text style={[styles.logoutText, {color: theme.lightTextColor}]}>Cerrar Sesión</Text>
+                  </TouchableOpacity>
+                ),
+              }}
+            >
+              {() => (
+                <Tab.Navigator
+                  screenOptions={{
+                    tabBarScrollEnabled: true,
+                    tabBarItemStyle: { width: 130 },
+                    tabBarStyle: { backgroundColor: '#fff', elevation: 2 },
+                    tabBarIndicatorStyle: { backgroundColor: theme.primaryColor, height: 3 },
+                    tabBarLabelStyle: { fontSize: 12, fontWeight: 'bold', textTransform: 'none' },
+                    tabBarActiveTintColor: theme.primaryColor,
+                    tabBarInactiveTintColor: '#888',
+                  }}
+                >
+                  {showAdminOnly && <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: '📊 Dashboard' }} />}
+                  <Tab.Screen name="Calendar" component={CalendarScreen} options={{ tabBarLabel: '📅 Calendario' }} />
+                  <Tab.Screen name="Appointments" component={AppointmentsScreen} options={{ tabBarLabel: '➕ Nueva Cita' }} />
+                  {isAdmin && <Tab.Screen name="Clients" component={ClientsScreen} options={{ tabBarLabel: '👥 Clientes' }} />}
+                  {(isAdmin || isManagement) && <Tab.Screen name="Services" component={ServicesScreen} options={{ tabBarLabel: '💅 Servicios' }} />}
+                  {isAdmin && <Tab.Screen name="Expenses" component={ExpensesScreen} options={{ tabBarLabel: '💰 Gastos' }} />}
+                  {showAdminOnly && <Tab.Screen name="Calculator" component={CalculatorScreen} options={{ tabBarLabel: '🧮 Calculadora' }} />}
+                  {showAdminOnly && <Tab.Screen name="Promotions" component={PromotionsScreen} options={{ tabBarLabel: '🎁 Promociones' }} />}
+                  <Tab.Screen name="Inventory" component={InventoryScreen} options={{ tabBarLabel: '📦 Inventario' }} />
+                  {showAdminOnly && <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: '⚙️ Ajustes' }} />}
+                </Tab.Navigator>
+              )}
+            </Stack.Screen>
+          )
+
         ) : (
-          <Stack.Screen name="Main" component={TopTabs} />
+          
+          /* FLUJO B2C: CLIENTES FINALES (MARKETPLACE) */
+          !tenantId ? (
+            <Stack.Screen 
+              name="Marketplace" 
+              component={MarketplaceScreen} 
+              options={{
+                headerTitle: 'Directorio de Salones',
+                headerLeft: () => (
+                  <TouchableOpacity onPress={() => setAppMode(null)} style={styles.backBtn}>
+                    <Text style={{color: '#3498db'}}>Volver</Text>
+                  </TouchableOpacity>
+                )
+              }} 
+            />
+          ) : (
+            <Stack.Screen 
+              name="ClientBooking" 
+              component={ClientBookingScreen} 
+              options={{
+                headerTitle: () => <LogoTitle />,
+                headerStyle: { backgroundColor: theme.primaryColor },
+                headerTintColor: theme.lightTextColor,
+                headerLeft: () => (
+                  <TouchableOpacity onPress={() => setTenantId('')} style={styles.backBtn}>
+                    <Text style={{color: theme.lightTextColor}}>← Volver</Text>
+                  </TouchableOpacity>
+                )
+              }} 
+            />
+          )
         )}
+        
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  logoContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 5 },
-  logoImage: { width: 140, height: 40 },
-  tabBarWrapper: {
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.08)',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 3 }
-  },
-  tabScrollContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minWidth: '100%',
-    justifyContent: 'space-around'
-  },
-  tabButton: {
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent'
-  },
-  tabButtonInactive: {
-    borderBottomColor: 'transparent',
-  },
-  tabText: {
-    fontWeight: 'bold',
-    fontSize: 13,
-    textAlign: 'center'
-  },
-  tabTextInactive: {
-    color: '#888888',
-    fontWeight: '600',
-  }
+  logoTitleContainer: { flexDirection: 'row', alignItems: 'center' },
+  logo: { width: 35, height: 35, marginRight: 10, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)' },
+  headerTitle: { fontSize: 18, fontWeight: 'bold' },
+  logoutBtn: { padding: 8, backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 20, marginRight: 10 },
+  logoutText: { fontSize: 12, fontWeight: 'bold' },
+  backBtn: { padding: 10, marginRight: 10 }
 });

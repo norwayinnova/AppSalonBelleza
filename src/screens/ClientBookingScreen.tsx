@@ -229,9 +229,20 @@ export default function ClientBookingScreen({ navigation }: any) {
       alert('Selecciona fecha y hora.');
       return;
     }
-    if (window.confirm('Para confirmar la cita, debes abonar una fianza de reserva (10€) que se descontará del precio final. Serás redirigido a la pasarela de pago seguro. ¿Deseas continuar?')) {
-      saveBooking();
-    }
+          const payment = theme.paymentOptions;
+      if (payment?.allowBizum) {
+        if (window.confirm('Para confirmar, realiza un Bizum al ' + (payment.bizumPhone || 'teléfono del local') + '. ¿Deseas registrar la cita?')) {
+          saveBooking();
+        }
+      } else if (payment?.allowStripe || payment?.allowRedsys || payment?.allowPaypal) {
+         if (window.confirm('Serás redirigido a la pasarela de pago seguro. ¿Deseas continuar?')) {
+            saveBooking();
+         }
+      } else {
+         if (window.confirm('Tu cita será confirmada y pagarás en el local. ¿Confirmar?')) {
+            saveBooking();
+         }
+      }
   };
 
   if (loading) {
