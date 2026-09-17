@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
 import { collection, addDoc, onSnapshot, query, deleteDoc, doc, orderBy , where} from 'firebase/firestore';
@@ -26,7 +26,7 @@ export default function PromotionsScreen() {
 
   const handleSavePromo = async () => {
     if (!title.trim() || !message.trim()) {
-      alert('Por favor, rellena el título y el mensaje de la promoción.');
+      alert('Por favor, rellena el tÃ­tulo y el mensaje de la promociÃ³n.');
       return;
     }
     try {
@@ -37,43 +37,43 @@ export default function PromotionsScreen() {
       });
       setTitle('');
       setMessage('');
-      alert('Promoción guardada con éxito.');
+      alert('PromociÃ³n guardada con Ã©xito.');
     } catch (e) {
-      alert('Error al guardar la promoción.');
+      alert('Error al guardar la promociÃ³n.');
     }
   };
 
   const handleDeletePromo = async (id: string) => {
-    if (window.confirm('¿Seguro que quieres eliminar esta promoción del registro?')) {
+    if (window.confirm('Â¿Seguro que quieres eliminar esta promociÃ³n del registro?')) {
       await deleteDoc(doc(db, 'promotions', id));
     }
   };
 
   const handleSendWhatsApp = (promoMessage: string) => {
-    // Al no especificar número de teléfono, WhatsApp abre el menú de "Reenviar a..."
-    // Lo cual es perfecto para seleccionar una Lista de Difusión.
+    // Al no especificar nÃºmero de telÃ©fono, WhatsApp abre el menÃº de "Reenviar a..."
+    // Lo cual es perfecto para seleccionar una Lista de DifusiÃ³n.
     const url = `https://wa.me/?text=${encodeURIComponent(promoMessage)}`;
     Linking.openURL(url).catch(err => {
-      alert('No se pudo abrir WhatsApp. Asegúrate de tenerlo instalado o usa WhatsApp Web.');
+      alert('No se pudo abrir WhatsApp. AsegÃºrate de tenerlo instalado o usa WhatsApp Web.');
     });
   };
 
-  if (loading) return <ActivityIndicator size="large" color=theme.primaryColor style={{marginTop: 50}} />;
+  if (loading) return <ActivityIndicator size="large" color={theme.primaryColor} style={{marginTop: 50}} />;
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.mainTitle}>📢 Campañas y Promociones</Text>
-        <Text style={styles.subtitle}>Redacta promociones y lánzalas por WhatsApp a tus clientas.</Text>
+        <Text style={styles.mainTitle}>ðŸ“¢ CampaÃ±as y Promociones</Text>
+        <Text style={styles.subtitle}>Redacta promociones y lÃ¡nzalas por WhatsApp a tus clientas.</Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>✨ Crear Nueva Promoción</Text>
+        <Text style={styles.cardTitle}>âœ¨ Crear Nueva PromociÃ³n</Text>
         
-        <Text style={styles.label}>Título (Solo interno para ti):</Text>
+        <Text style={styles.label}>TÃ­tulo (Solo interno para ti):</Text>
         <TextInput 
           style={styles.input} 
-          placeholder="Ej: San Valentín 20% Dto" 
+          placeholder="Ej: San ValentÃ­n 20% Dto" 
           value={title} 
           onChangeText={setTitle} 
         />
@@ -89,22 +89,22 @@ export default function PromotionsScreen() {
         />
 
         <TouchableOpacity style={styles.btnAction} onPress={handleSavePromo}>
-          <Text style={styles.btnActionText}>💾 Guardar Promoción</Text>
+          <Text style={styles.btnActionText}>ðŸ’¾ Guardar PromociÃ³n</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>🚀 Promociones Guardadas</Text>
+        <Text style={styles.cardTitle}>ðŸš€ Promociones Guardadas</Text>
         
         {promotions.length === 0 ? (
-          <Text style={styles.noData}>No hay promociones guardadas todavía.</Text>
+          <Text style={styles.noData}>No hay promociones guardadas todavÃ­a.</Text>
         ) : (
           promotions.map(promo => (
             <View key={promo.id} style={styles.promoItem}>
               <View style={styles.promoHeader}>
                 <Text style={styles.promoTitle}>{promo.title}</Text>
                 <TouchableOpacity onPress={() => handleDeletePromo(promo.id)}>
-                  <Text style={styles.deleteText}>🗑️</Text>
+                  <Text style={styles.deleteText}>ðŸ—‘ï¸</Text>
                 </TouchableOpacity>
               </View>
               
@@ -113,7 +113,7 @@ export default function PromotionsScreen() {
               </View>
 
               <TouchableOpacity style={styles.btnWhatsapp} onPress={() => handleSendWhatsApp(promo.message)}>
-                <Text style={styles.btnWhatsappText}>📲 Enviar por WhatsApp (Difusión)</Text>
+                <Text style={styles.btnWhatsappText}>ðŸ“² Enviar por WhatsApp (DifusiÃ³n)</Text>
               </TouchableOpacity>
             </View>
           ))

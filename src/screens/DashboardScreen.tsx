@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TextInput, TouchableOpacity, Modal } from 'react-native';
 import { collection, onSnapshot, query , where} from 'firebase/firestore';
@@ -173,7 +173,7 @@ export default function DashboardScreen() {
       const amt = parseFloat(ex.amount) || 0;
       expTotal += amt;
       
-      // Si es una nómina y está en este rango de fechas
+      // Si es una nÃ³mina y estÃ¡ en este rango de fechas
       if (ex.type === 'payroll' && ex.team) {
         if (!byTeam[ex.team]) {
            byTeam[ex.team] = { clients: 0, revenue: 0, pending: 0, cancelled: 0, workedMins: 0, blockedMins: 0, payrollPaid: 0 };
@@ -213,7 +213,7 @@ export default function DashboardScreen() {
 
     const maxChartValue = Math.max(...chartValues, 1);
 
-    // NUEVOS VIPs: Histórico global (10 citas, 0 canceladas) sin aviso enviado
+    // NUEVOS VIPs: HistÃ³rico global (10 citas, 0 canceladas) sin aviso enviado
     const allAppsByPhone: Record<string, { completed: number, cancelled: number, name: string }> = {};
     appointments.forEach(app => {
       const p = (app.phone || '').trim();
@@ -241,11 +241,11 @@ export default function DashboardScreen() {
   }, [appointments, expenses, clients, dateFilter]);
 
   const handleUpdatePin = async () => {
-    if (newPin.length !== 4) return alert('El PIN debe tener 4 números.');
+    if (newPin.length !== 4) return alert('El PIN debe tener 4 nÃºmeros.');
     try {
       const { doc, setDoc } = require('firebase/firestore');
       await setDoc(doc(db, 'config', 'admin'), { pin: newPin, pinEnabled: true }, { merge: true });
-      alert('PIN actualizado con éxito.');
+      alert('PIN actualizado con Ã©xito.');
       setNewPin('');
     } catch (e) {
       alert('Error al guardar el PIN.');
@@ -253,11 +253,11 @@ export default function DashboardScreen() {
   };
 
   const handleUpdateManagementPin = async () => {
-    if (newManagementPin.length !== 4) return alert('El PIN debe tener 4 números.');
+    if (newManagementPin.length !== 4) return alert('El PIN debe tener 4 nÃºmeros.');
     try {
       const { doc, setDoc } = require('firebase/firestore');
       await setDoc(doc(db, 'config', 'admin'), { managementPin: newManagementPin }, { merge: true });
-      alert('PIN de AvalonMystic actualizado con éxito.');
+      alert('PIN de AvalonMystic actualizado con Ã©xito.');
       setNewManagementPin('');
     } catch (e) {
       alert('Error al guardar el PIN.');
@@ -279,11 +279,11 @@ export default function DashboardScreen() {
       }
 
       const { Linking } = require('react-native');
-      const text = `Enhorabuena ${vipClient.name}, tu confianza en ${theme.appName} te ha convertido en Avalon VIP. ¡Disfruta de un 10% de descuento en tu próxima cita! Desde ${theme.appName} agradecemos tu confianza y deseamos seguir creciendo contigo.`;
+      const text = `Enhorabuena ${vipClient.name}, tu confianza en ${theme.appName} te ha convertido en Avalon VIP. Â¡Disfruta de un 10% de descuento en tu prÃ³xima cita! Desde ${theme.appName} agradecemos tu confianza y deseamos seguir creciendo contigo.`;
       const url = `https://wa.me/${vipClient.phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
       Linking.openURL(url).catch(() => alert('No se pudo abrir WhatsApp.'));
     } catch (e) {
-      alert('Error al registrar el envío VIP.');
+      alert('Error al registrar el envÃ­o VIP.');
     }
   };
 
@@ -294,7 +294,7 @@ export default function DashboardScreen() {
         paymentStatus: 'paid',
         paymentMethod: method
       });
-      alert('¡Pago registrado con éxito!');
+      alert('Â¡Pago registrado con Ã©xito!');
     } catch (e) {
       alert('Error al actualizar el pago.');
     }
@@ -305,7 +305,7 @@ export default function DashboardScreen() {
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
     const thresholdDate = threeMonthsAgo.toISOString().split('T')[0];
 
-    if (!window.confirm(`¿Estás seguro de que quieres eliminar todas las citas anteriores al ${thresholdDate}?`)) return;
+    if (!window.confirm(`Â¿EstÃ¡s seguro de que quieres eliminar todas las citas anteriores al ${thresholdDate}?`)) return;
 
     try {
         const { getDocs, query, where, writeBatch, doc, getDoc, setDoc } = require('firebase/firestore');
@@ -337,7 +337,7 @@ export default function DashboardScreen() {
             }, { merge: true });
         }
         await batch.commit();
-        alert('Limpieza completada con éxito.');
+        alert('Limpieza completada con Ã©xito.');
     } catch (e) {
         alert('Error al limpiar la base de datos.');
     }
@@ -345,7 +345,7 @@ export default function DashboardScreen() {
 
   const toggleWidget = (key: keyof typeof widgets) => setWidgets(w => ({...w, [key]: !w[key]}));
 
-  if (loading) return <ActivityIndicator size="large" color=theme.primaryColor style={{marginTop: 50}} />;
+  if (loading) return <ActivityIndicator size="large" color={theme.primaryColor} style={{marginTop: 50}} />;
 
   return (
     <ScrollView style={styles.container}>
@@ -353,7 +353,7 @@ export default function DashboardScreen() {
       <View style={styles.header}>
         <Text style={styles.mainTitle}>Dashboard Analytics</Text>
         <TouchableOpacity style={styles.settingsBtn} onPress={() => setShowSettings(true)}>
-          <Text style={{fontSize: 20}}>⚙️</Text>
+          <Text style={{fontSize: 20}}>âš™ï¸</Text>
         </TouchableOpacity>
       </View>
 
@@ -365,7 +365,7 @@ export default function DashboardScreen() {
           <Text style={[styles.filterText, dateFilter === 'month' && styles.filterTextActive]}>Mes</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.filterBtn, dateFilter === 'year' && styles.filterBtnActive]} onPress={() => setDateFilter('year')}>
-          <Text style={[styles.filterText, dateFilter === 'year' && styles.filterTextActive]}>Año</Text>
+          <Text style={[styles.filterText, dateFilter === 'year' && styles.filterTextActive]}>AÃ±o</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.filterBtn, dateFilter === 'all' && styles.filterBtnActive]} onPress={() => setDateFilter('all')}>
           <Text style={[styles.filterText, dateFilter === 'all' && styles.filterTextActive]}>Todo</Text>
@@ -375,38 +375,38 @@ export default function DashboardScreen() {
       {/* NUEVOS VIPS */}
       {widgets.vip && stats.newVips.length > 0 && (
         <View style={[styles.card, { borderColor: '#f1c40f', borderWidth: 2, backgroundColor: '#fff9e6' }]}>
-          <Text style={[styles.cardTitle, { color: '#d35400' }]}>👑 Nuevos Clientes Avalon VIP</Text>
-          <Text style={{ fontSize: 12, color: '#888', marginBottom: 15 }}>Han completado 10 citas sin cancelaciones. ¡Mándales su premio!</Text>
+          <Text style={[styles.cardTitle, { color: '#d35400' }]}>ðŸ‘‘ Nuevos Clientes Avalon VIP</Text>
+          <Text style={{ fontSize: 12, color: '#888', marginBottom: 15 }}>Han completado 10 citas sin cancelaciones. Â¡MÃ¡ndales su premio!</Text>
           {stats.newVips.map((vip: any, index: number) => (
             <View key={index} style={styles.teamRow}>
               <View>
-                <Text style={styles.teamName}>👤 {vip.name}</Text>
+                <Text style={styles.teamName}>ðŸ‘¤ {vip.name}</Text>
                 <Text style={{ color: '#555', fontSize: 12 }}>{vip.phone}</Text>
               </View>
               <TouchableOpacity style={{ backgroundColor: '#25D366', padding: 8, borderRadius: 6 }} onPress={() => handleSendVipMessage(vip)}>
-                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>📲 Enviar Descuento</Text>
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>ðŸ“² Enviar Descuento</Text>
               </TouchableOpacity>
             </View>
           ))}
         </View>
       )}
 
-      {/* MÉTRICAS PRINCIPALES */}
+      {/* MÃ‰TRICAS PRINCIPALES */}
       {widgets.metrics && (
         <View style={styles.metricsContainer}>
           <View style={styles.metricCard}>
             <Text style={styles.metricLabel}>Ingresos Brutos</Text>
-            <Text style={[styles.metricValue, {color: '#2ecc71'}]}>{stats.revenue.toFixed(2)} €</Text>
+            <Text style={[styles.metricValue, {color: '#2ecc71'}]}>{stats.revenue.toFixed(2)} â‚¬</Text>
             <View style={{flexDirection: 'row', marginTop: 5, justifyContent: 'space-between', width: '100%'}}>
-               <Text style={{fontSize: 10, color: '#888'}}>💵 {stats.cash.toFixed(0)}€</Text>
-               <Text style={{fontSize: 10, color: '#888'}}>📱 {stats.bizum.toFixed(0)}€</Text>
-               <Text style={{fontSize: 10, color: '#888'}}>💳 {stats.otro.toFixed(0)}€</Text>
+               <Text style={{fontSize: 10, color: '#888'}}>ðŸ’µ {stats.cash.toFixed(0)}â‚¬</Text>
+               <Text style={{fontSize: 10, color: '#888'}}>ðŸ“± {stats.bizum.toFixed(0)}â‚¬</Text>
+               <Text style={{fontSize: 10, color: '#888'}}>ðŸ’³ {stats.otro.toFixed(0)}â‚¬</Text>
             </View>
           </View>
           <View style={styles.metricCard}>
             <Text style={styles.metricLabel}>Gastos</Text>
-            <Text style={[styles.metricValue, {color: '#e74c3c'}]}>-{stats.expTotal.toFixed(2)} €</Text>
-            <Text style={{fontSize: 11, color: '#888', marginTop: 5}}>Neto: {(stats.revenue - stats.expTotal).toFixed(2)}€</Text>
+            <Text style={[styles.metricValue, {color: '#e74c3c'}]}>-{stats.expTotal.toFixed(2)} â‚¬</Text>
+            <Text style={{fontSize: 11, color: '#888', marginTop: 5}}>Neto: {(stats.revenue - stats.expTotal).toFixed(2)}â‚¬</Text>
           </View>
           <View style={styles.metricCard}>
             <Text style={styles.metricLabel}>Citas Totales</Text>
@@ -415,10 +415,10 @@ export default function DashboardScreen() {
         </View>
       )}
 
-      {/* GRÁFICO DE INGRESOS */}
+      {/* GRÃFICO DE INGRESOS */}
       {widgets.chart && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>📈 Evolución de Ingresos</Text>
+          <Text style={styles.cardTitle}>ðŸ“ˆ EvoluciÃ³n de Ingresos</Text>
           <View style={styles.chartContainer}>
             {stats.chartValues.map((val, i) => {
               const height = (val / stats.maxChartValue) * 120; // 120px max height
@@ -437,23 +437,23 @@ export default function DashboardScreen() {
       {/* RENDIMIENTO POR EMPLEADA */}
       {widgets.teams && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>👩‍💻 Rendimiento del Equipo</Text>
+          <Text style={styles.cardTitle}>ðŸ‘©â€ðŸ’» Rendimiento del Equipo</Text>
           {Object.keys(stats.byTeam).map(team => {
             const tData = stats.byTeam[team];
             return (
               <View key={team} style={styles.teamRow}>
                 <View>
                   <Text style={styles.teamName}>{team}</Text>
-                  <Text style={styles.teamStats}>✅ {tData.clients} citas | ❌ {tData.cancelled} canceladas</Text>
+                  <Text style={styles.teamStats}>âœ… {tData.clients} citas | âŒ {tData.cancelled} canceladas</Text>
                   <Text style={[styles.teamStats, {color: '#888', marginTop: 2}]}>
-                    ⏱ Trab: {formatHours(tData.workedMins)} | ⏸️ Bloq: {formatHours(tData.blockedMins)}
+                    â± Trab: {formatHours(tData.workedMins)} | â¸ï¸ Bloq: {formatHours(tData.blockedMins)}
                   </Text>
                 </View>
                 <View style={{alignItems: 'flex-end'}}>
-                  <Text style={{fontWeight: 'bold', color: '#2ecc71', fontSize: 15}}>{tData.revenue.toFixed(2)} €</Text>
-                  <Text style={{fontSize: 12, color: theme.secondaryColor}}>⏳ {tData.pending.toFixed(2)} €</Text>
+                  <Text style={{fontWeight: 'bold', color: '#2ecc71', fontSize: 15}}>{tData.revenue.toFixed(2)} â‚¬</Text>
+                  <Text style={{fontSize: 12, color: theme.secondaryColor}}>â³ {tData.pending.toFixed(2)} â‚¬</Text>
                   {tData.payrollPaid > 0 && (
-                    <Text style={{fontSize: 11, color: theme.primaryColor, marginTop: 4, fontWeight: 'bold'}}>💰 Nómina: {tData.payrollPaid.toFixed(2)} €</Text>
+                    <Text style={{fontSize: 11, color: theme.primaryColor, marginTop: 4, fontWeight: 'bold'}}>ðŸ’° NÃ³mina: {tData.payrollPaid.toFixed(2)} â‚¬</Text>
                   )}
                 </View>
               </View>
@@ -466,13 +466,13 @@ export default function DashboardScreen() {
       {/* PAGOS PENDIENTES */}
       {widgets.pending && (
         <View style={styles.card}>
-          <Text style={[styles.cardTitle, {color: theme.secondaryColor}]}>⏳ Pagos Pendientes</Text>
+          <Text style={[styles.cardTitle, {color: theme.secondaryColor}]}>â³ Pagos Pendientes</Text>
           {stats.pendingList.length > 0 ? (
             stats.pendingList.map((app: any) => (
               <View key={app.id} style={styles.teamRow}>
                 <View>
-                  <Text style={styles.teamName}>👤 {app.client}</Text>
-                  <Text style={styles.teamStats}>📅 {app.date} - 💶 {app.finalPrice || app.price}€</Text>
+                  <Text style={styles.teamName}>ðŸ‘¤ {app.client}</Text>
+                  <Text style={styles.teamStats}>ðŸ“… {app.date} - ðŸ’¶ {app.finalPrice || app.price}â‚¬</Text>
                 </View>
                 <View style={{flexDirection: 'row'}}>
                   <TouchableOpacity style={styles.payBtn} onPress={() => handleMarkAsPaid(app.id, 'cash')}>
@@ -488,7 +488,7 @@ export default function DashboardScreen() {
               </View>
             ))
           ) : (
-            <Text style={styles.noDataText}>Todo está al día.</Text>
+            <Text style={styles.noDataText}>Todo estÃ¡ al dÃ­a.</Text>
           )}
         </View>
       )}
@@ -496,21 +496,21 @@ export default function DashboardScreen() {
       {/* CITAS CANCELADAS */}
       {widgets.cancelled && (
         <View style={styles.card}>
-          <Text style={[styles.cardTitle, {color: '#e74c3c'}]}>🚫 Citas Canceladas</Text>
+          <Text style={[styles.cardTitle, {color: '#e74c3c'}]}>ðŸš« Citas Canceladas</Text>
           {stats.cancelledList.length > 0 ? (
             stats.cancelledList.map((app: any) => {
               let noticeText = 'Desconocida';
               if (app.cancelledAt) {
                 const diffMs = new Date(`${app.date}T${app.time || '00:00'}:00`).getTime() - new Date(app.cancelledAt).getTime();
                 if (diffMs < 0) noticeText = 'No-show / Tarde';
-                else noticeText = `Con ${Math.round(diffMs / 3600000)}h antelación`;
+                else noticeText = `Con ${Math.round(diffMs / 3600000)}h antelaciÃ³n`;
               }
               return (
                 <View key={app.id} style={styles.teamRow}>
                   <View>
-                    <Text style={styles.teamName}>👤 {app.client}</Text>
-                    <Text style={styles.teamStats}>📅 {app.date} - ✨ {app.serviceName}</Text>
-                    <Text style={[styles.teamStats, {color: '#e74c3c'}]}>⏰ {noticeText}</Text>
+                    <Text style={styles.teamName}>ðŸ‘¤ {app.client}</Text>
+                    <Text style={styles.teamStats}>ðŸ“… {app.date} - âœ¨ {app.serviceName}</Text>
+                    <Text style={[styles.teamStats, {color: '#e74c3c'}]}>â° {noticeText}</Text>
                   </View>
                 </View>
               );
@@ -521,26 +521,26 @@ export default function DashboardScreen() {
         </View>
       )}
 
-      {/* SECCIÓN ADMIN */}
+      {/* SECCIÃ“N ADMIN */}
       {widgets.admin && (
         <>
           <View style={styles.card}>
-            <Text style={[styles.cardTitle, {color: '#8e44ad'}]}>🧹 Mantenimiento de BD</Text>
+            <Text style={[styles.cardTitle, {color: '#8e44ad'}]}>ðŸ§¹ Mantenimiento de BD</Text>
             <TouchableOpacity style={[styles.btnAction, {backgroundColor: '#8e44ad'}]} onPress={handleFreeUpSpace}>
-              <Text style={styles.btnText}>🗑️ Liberar espacio (Citas antiguas)</Text>
+              <Text style={styles.btnText}>ðŸ—‘ï¸ Liberar espacio (Citas antiguas)</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>⚙️ Configuración de Accesos</Text>
+            <Text style={styles.cardTitle}>âš™ï¸ ConfiguraciÃ³n de Accesos</Text>
             <Text style={styles.subtitle}>PIN de Administrador</Text>
             <View style={styles.inputRow}>
-              <TextInput style={styles.input} placeholder="4 dígitos" keyboardType="numeric" maxLength={4} value={newPin} onChangeText={setNewPin} />
+              <TextInput style={styles.input} placeholder="4 dÃ­gitos" keyboardType="numeric" maxLength={4} value={newPin} onChangeText={setNewPin} />
               <TouchableOpacity style={styles.btnAction} onPress={handleUpdatePin}><Text style={styles.btnText}>Guardar</Text></TouchableOpacity>
             </View>
             <Text style={[styles.subtitle, {marginTop: 15}]}>PIN de AvalonMystic</Text>
             <View style={styles.inputRow}>
-              <TextInput style={styles.input} placeholder="4 dígitos" keyboardType="numeric" maxLength={4} value={newManagementPin} onChangeText={setNewManagementPin} />
+              <TextInput style={styles.input} placeholder="4 dÃ­gitos" keyboardType="numeric" maxLength={4} value={newManagementPin} onChangeText={setNewManagementPin} />
               <TouchableOpacity style={styles.btnAction} onPress={handleUpdateManagementPin}><Text style={styles.btnText}>Guardar</Text></TouchableOpacity>
             </View>
           </View>
@@ -549,7 +549,7 @@ export default function DashboardScreen() {
 
       <View style={{height: 40}} />
 
-      {/* MODAL CONFIGURACIÓN WIDGETS */}
+      {/* MODAL CONFIGURACIÃ“N WIDGETS */}
       <Modal visible={showSettings} animationType="slide" transparent>
         <View style={styles.modalBg}>
           <View style={styles.modalCard}>
@@ -557,28 +557,28 @@ export default function DashboardScreen() {
             <Text style={{color: '#666', marginBottom: 15, fontSize: 13}}>Marca las tarjetas que quieres ver.</Text>
             
             <View style={styles.toggleRow}>
-              <Text>Métricas (Cajas Arriba)</Text>
-              <TouchableOpacity onPress={() => toggleWidget('metrics')}><Text style={{fontSize: 22}}>{widgets.metrics ? '☑️' : '☐'}</Text></TouchableOpacity>
+              <Text>MÃ©tricas (Cajas Arriba)</Text>
+              <TouchableOpacity onPress={() => toggleWidget('metrics')}><Text style={{fontSize: 22}}>{widgets.metrics ? 'â˜‘ï¸' : 'â˜'}</Text></TouchableOpacity>
             </View>
             <View style={styles.toggleRow}>
-              <Text>Gráfico de Ingresos</Text>
-              <TouchableOpacity onPress={() => toggleWidget('chart')}><Text style={{fontSize: 22}}>{widgets.chart ? '☑️' : '☐'}</Text></TouchableOpacity>
+              <Text>GrÃ¡fico de Ingresos</Text>
+              <TouchableOpacity onPress={() => toggleWidget('chart')}><Text style={{fontSize: 22}}>{widgets.chart ? 'â˜‘ï¸' : 'â˜'}</Text></TouchableOpacity>
             </View>
             <View style={styles.toggleRow}>
               <Text>Rendimiento del Equipo</Text>
-              <TouchableOpacity onPress={() => toggleWidget('teams')}><Text style={{fontSize: 22}}>{widgets.teams ? '☑️' : '☐'}</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => toggleWidget('teams')}><Text style={{fontSize: 22}}>{widgets.teams ? 'â˜‘ï¸' : 'â˜'}</Text></TouchableOpacity>
             </View>
             <View style={styles.toggleRow}>
               <Text>Pagos Pendientes</Text>
-              <TouchableOpacity onPress={() => toggleWidget('pending')}><Text style={{fontSize: 22}}>{widgets.pending ? '☑️' : '☐'}</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => toggleWidget('pending')}><Text style={{fontSize: 22}}>{widgets.pending ? 'â˜‘ï¸' : 'â˜'}</Text></TouchableOpacity>
             </View>
             <View style={styles.toggleRow}>
               <Text>Citas Canceladas</Text>
-              <TouchableOpacity onPress={() => toggleWidget('cancelled')}><Text style={{fontSize: 22}}>{widgets.cancelled ? '☑️' : '☐'}</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => toggleWidget('cancelled')}><Text style={{fontSize: 22}}>{widgets.cancelled ? 'â˜‘ï¸' : 'â˜'}</Text></TouchableOpacity>
             </View>
             <View style={styles.toggleRow}>
               <Text>Herramientas de Admin</Text>
-              <TouchableOpacity onPress={() => toggleWidget('admin')}><Text style={{fontSize: 22}}>{widgets.admin ? '☑️' : '☐'}</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => toggleWidget('admin')}><Text style={{fontSize: 22}}>{widgets.admin ? 'â˜‘ï¸' : 'â˜'}</Text></TouchableOpacity>
             </View>
 
             <TouchableOpacity style={styles.modalBtn} onPress={() => setShowSettings(false)}>

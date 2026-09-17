@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { collection, onSnapshot, query , where} from 'firebase/firestore';
@@ -45,21 +45,21 @@ export default function CalculatorScreen() {
 
   const handlePay = async (team: string, weekStart: string, amount: string) => {
     if (!amount || amount === '0.00' || amount === '0') return alert('El importe no puede ser cero.');
-    if (!window.confirm(`¿Confirmas el pago de ${amount}€ a ${team} por esta semana?`)) return;
+    if (!window.confirm(`Â¿Confirmas el pago de ${amount}â‚¬ a ${team} por esta semana?`)) return;
 
     try {
       const { addDoc } = require('firebase/firestore');
       await addDoc(collection(db, 'expenses'), { tenantId, tenantId,
         amount,
-        category: 'Nómina',
-        description: `Nómina ${team} - Semana ${weekStart}`,
+        category: 'NÃ³mina',
+        description: `NÃ³mina ${team} - Semana ${weekStart}`,
         date: new Date().toISOString().split('T')[0],
         type: 'payroll',
         team,
         week: weekStart,
         createdAt: new Date()
       });
-      alert('Pago registrado con éxito. Aparecerá en los gastos del Dashboard.');
+      alert('Pago registrado con Ã©xito. AparecerÃ¡ en los gastos del Dashboard.');
     } catch (error) {
       alert('Error al registrar el pago.');
     }
@@ -95,27 +95,27 @@ export default function CalculatorScreen() {
     setPercentages(prev => ({ ...prev, [team]: val }));
   };
 
-  if (loading) return <ActivityIndicator size="large" color=theme.primaryColor style={{marginTop: 50}} />;
+  if (loading) return <ActivityIndicator size="large" color={theme.primaryColor} style={{marginTop: 50}} />;
 
   const teams = Object.keys(stats.byTeam).sort();
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.mainTitle}>🧮 Calculadora de Nóminas</Text>
-        <Text style={styles.subtitle}>Calcula la comisión semanal de las empleadas.</Text>
+        <Text style={styles.mainTitle}>ðŸ§® Calculadora de NÃ³minas</Text>
+        <Text style={styles.subtitle}>Calcula la comisiÃ³n semanal de las empleadas.</Text>
       </View>
 
       <View style={styles.weekControl}>
         <TouchableOpacity style={styles.weekBtn} onPress={() => setWeekOffset(w => w - 1)}>
-          <Text style={styles.weekBtnText}>◀ Anterior</Text>
+          <Text style={styles.weekBtnText}>â—€ Anterior</Text>
         </TouchableOpacity>
         <View style={styles.weekInfo}>
           <Text style={styles.weekDatesText}>Semana del</Text>
           <Text style={styles.weekDates}>{stats.startStr}</Text>
         </View>
         <TouchableOpacity style={styles.weekBtn} onPress={() => setWeekOffset(w => w + 1)}>
-          <Text style={styles.weekBtnText}>Siguiente ▶</Text>
+          <Text style={styles.weekBtnText}>Siguiente â–¶</Text>
         </TouchableOpacity>
       </View>
 
@@ -131,18 +131,18 @@ export default function CalculatorScreen() {
           return (
             <View key={team} style={styles.card}>
               <View style={styles.cardHeader}>
-                <Text style={styles.teamName}>💇‍♀️ {team}</Text>
+                <Text style={styles.teamName}>ðŸ’‡â€â™€ï¸ {team}</Text>
                 <Text style={styles.serviceCount}>{completedCount} servicios cobrados</Text>
               </View>
               
               <View style={styles.calcRow}>
                 <View style={styles.calcCol}>
                   <Text style={styles.label}>Caja semanal:</Text>
-                  <Text style={styles.revenueText}>{revenue.toFixed(2)} €</Text>
+                  <Text style={styles.revenueText}>{revenue.toFixed(2)} â‚¬</Text>
                 </View>
 
                 <View style={styles.calcColCenter}>
-                  <Text style={styles.label}>Comisión %:</Text>
+                  <Text style={styles.label}>ComisiÃ³n %:</Text>
                   {isPaid ? (
                     <Text style={{fontSize: 16, fontWeight: 'bold', color: '#666', marginTop: 10}}>- Cerrado -</Text>
                   ) : (
@@ -160,12 +160,12 @@ export default function CalculatorScreen() {
                   <Text style={styles.label}>A Pagar:</Text>
                   {isPaid ? (
                     <View style={{alignItems: 'center'}}>
-                      <Text style={[styles.payoutText, {color: '#888'}]}>{isPaid.amount} €</Text>
-                      <View style={styles.paidBadge}><Text style={styles.paidBadgeText}>✓ Pagado</Text></View>
+                      <Text style={[styles.payoutText, {color: '#888'}]}>{isPaid.amount} â‚¬</Text>
+                      <View style={styles.paidBadge}><Text style={styles.paidBadgeText}>âœ“ Pagado</Text></View>
                     </View>
                   ) : (
                     <View style={{alignItems: 'center'}}>
-                      <Text style={styles.payoutText}>{payout} €</Text>
+                      <Text style={styles.payoutText}>{payout} â‚¬</Text>
                       <TouchableOpacity style={styles.payBtn} onPress={() => handlePay(team, stats.startStr, payout)}>
                         <Text style={styles.payBtnText}>Marcar Pagado</Text>
                       </TouchableOpacity>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query , where} from 'firebase/firestore';
@@ -50,7 +50,7 @@ export default function ServicesScreen() {
 
   const saveService = async () => {
     if (name.trim() === '' || duration.trim() === '') {
-      alert('Por favor, completa el nombre y la duración en minutos.');
+      alert('Por favor, completa el nombre y la duraciÃ³n en minutos.');
       return;
     }
     if (selectedTeams.length === 0) {
@@ -104,7 +104,7 @@ export default function ServicesScreen() {
   };
 
   const deleteService = async (id: string, serviceName: string) => {
-    if (window.confirm(`¿Seguro que deseas eliminar el servicio "${serviceName}"?`)) {
+    if (window.confirm(`Â¿Seguro que deseas eliminar el servicio "${serviceName}"?`)) {
       try {
         await deleteDoc(doc(db, 'services', id));
         if (editingId === id) {
@@ -119,32 +119,32 @@ export default function ServicesScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
-        {editingId ? '✏️ Modificar Servicio' : '➕ Nuevo Servicio'}
+        {editingId ? 'âœï¸ Modificar Servicio' : 'âž• Nuevo Servicio'}
       </Text>
       
       <TextInput
         style={styles.input}
-        placeholder="Nombre (ej. Limpieza Sofá 3 plazas)"
+        placeholder="Nombre (ej. Limpieza SofÃ¡ 3 plazas)"
         value={name}
         onChangeText={setName}
       />
       <TextInput
         style={styles.input}
-        placeholder="Duración estimada en minutos (ej. 90)"
+        placeholder="DuraciÃ³n estimada en minutos (ej. 90)"
         keyboardType="numeric"
         value={duration}
         onChangeText={setDuration}
       />
       <TextInput
         style={styles.input}
-        placeholder="Presupuesto base orientativo (€) (opcional)"
+        placeholder="Presupuesto base orientativo (â‚¬) (opcional)"
         keyboardType="numeric"
         value={price}
         onChangeText={setPrice}
       />
 
       <View style={{ marginBottom: 15 }}>
-        <Text style={{ fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 5 }}>¿Qué empleadas realizan este servicio?</Text>
+        <Text style={{ fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 5 }}>Â¿QuÃ© empleadas realizan este servicio?</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {teams.map(t => {
             const isSelected = selectedTeams.includes(t.name);
@@ -161,7 +161,7 @@ export default function ServicesScreen() {
                 }}
               >
                 <Text style={isSelected ? styles.chipTextSelected : styles.chipTextUnselected}>
-                  {isSelected ? '☑️' : '☐'} {t.name}
+                  {isSelected ? 'â˜‘ï¸' : 'â˜'} {t.name}
                 </Text>
               </TouchableOpacity>
             );
@@ -180,14 +180,14 @@ export default function ServicesScreen() {
           onPress={saveService}
         >
           <Text style={styles.buttonText}>
-            {editingId ? 'Guardar Cambios' : 'Añadir Servicio'}
+            {editingId ? 'Guardar Cambios' : 'AÃ±adir Servicio'}
           </Text>
         </TouchableOpacity>
       </View>
 
       <Text style={styles.titleList}>Servicios Disponibles ({services.length})</Text>
       {loading ? (
-        <ActivityIndicator size="large" color=theme.primaryColor />
+        <ActivityIndicator size="large" color={theme.primaryColor} />
       ) : (
         <FlatList
           data={services}
@@ -197,21 +197,21 @@ export default function ServicesScreen() {
               <View style={styles.serviceInfo}>
                 <Text style={styles.serviceName}>{item.name}</Text>
                 <View style={styles.badgeRow}>
-                  <Text style={styles.serviceDuration}>⏱ {item.duration} min</Text>
-                  {item.price ? <Text style={styles.servicePrice}>💶 {item.price} €</Text> : null}
+                  <Text style={styles.serviceDuration}>â± {item.duration} min</Text>
+                  {item.price ? <Text style={styles.servicePrice}>ðŸ’¶ {item.price} â‚¬</Text> : null}
                 </View>
               </View>
               <View style={styles.cardActions}>
                 <TouchableOpacity style={styles.iconBtn} onPress={() => startEdit(item)}>
-                  <Text style={styles.actionIcon}>✏️</Text>
+                  <Text style={styles.actionIcon}>âœï¸</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.iconBtn} onPress={() => deleteService(item.id, item.name)}>
-                  <Text style={styles.actionIcon}>🗑️</Text>
+                  <Text style={styles.actionIcon}>ðŸ—‘ï¸</Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
-          ListEmptyComponent={<Text style={styles.empty}>Aún no has añadido ningún servicio.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>AÃºn no has aÃ±adido ningÃºn servicio.</Text>}
         />
       )}
     </View>
