@@ -1,0 +1,182 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { collection, query, where, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { useAppContext } from '../context/AppContext';
+
+export default function ClientAppointmentsScreen() {
+  const { firebaseUser, theme } = useAppContext();
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [salonsInfo, setSalonsInfo] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!firebaseUser?.uid) return;
+
+    const q = query(
+      collection(db, 'appointments'),
+      where('clientId', '==', firebaseUser.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const apps = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      
+      // Sort by date/time (newest first for general, then split)
+      apps.sort((a, b) => {
+        const dA = new Date(`${a.date}T${a.time || '00:00'}`);
+        const dB = new Date(`${b.date}T${b.time || '00:00'}`);
+        return dA.getTime() - dB.getTime();
+      });
+
+      setAppointments(apps);
+
+      // Fetch salon names if we don't have them
+      const missingTenants = [...new Set(apps.map(a => a.tenantId).filter(id => !salonsInfo[id]))];
+      if (missingTenants.length > 0) {
+        const newSalons = { ...salonsInfo };
+        for (const tid of missingTenants) {
+          try {
+            const tDoc = await getDoc(doc(db, 'tenants', tid));
+            if (tDoc.exists()) {
+              newSalons[tid] = tDoc.data().appName || tid;
+            } else {
+              newSalons[tid] = 'Salón Desconocido';
+            }
+          } catch (e) {
+            newSalons[tid] = tid;
+          }
+        }
+        setSalonsInfo(newSalons);
+      }
+
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [firebaseUser?.uid]);
+
+  const handleCancel = (appId: string) => {
+    // In React Native Web, Alert works but custom buttons are limited, we use standard confirm for web safety or simple Alert
+    if (window.confirm('¿Seguro que deseas cancelar esta cita?')) {
+      updateDoc(doc(db, 'appointments', appId), {
+        status: 'cancelled',
+        notes: 'Cancelada por el cliente'
+      }).catch(err => alert('Error al cancelar la cita: ' + err.message));
+    }
+  };
+
+  const now = new Date();
+  
+  const upcoming = appointments.filter(a => {
+    if (a.status === 'cancelled') return false;
+    const appDate = new Date(`${a.date}T${a.time || '23:59'}`);
+    return appDate >= now;
+  });
+
+  const past = appointments.filter(a => {
+    if (a.status === 'cancelled') return true; // Show cancelled in history
+    const appDate = new Date(`${a.date}T${a.time || '23:59'}`);
+    return appDate < now;
+  });
+
+  const renderItem = ({ item, isPast }: { item: any, isPast: boolean }) => {
+    const isCancelled = item.status === 'cancelled';
+    
+    return (
+      <View style={[styles.card, isPast && styles.cardPast, isCancelled && styles.cardCancelled]}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.salonName}>{salonsInfo[item.tenantId] || 'Cargando salón...'}</Text>
+          <Text style={[styles.statusBadge, isCancelled && styles.statusCancelled]}>
+            {isCancelled ? 'Cancelada' : isPast ? 'Completada' : 'Confirmada'}
+          </Text>
+        </View>
+        
+        <Text style={styles.serviceText}>{item.serviceName}</Text>
+        <Text style={styles.detailsText}>📅 {item.date} a las {item.time}</Text>
+        <Text style={styles.detailsText}>💇‍♀️ Con {item.team}</Text>
+        <Text style={styles.detailsText}>💶 {item.price}€ ({item.duration} min)</Text>
+
+        {!isPast && !isCancelled && (
+          <TouchableOpacity 
+            style={styles.cancelBtn} 
+            onPress={() => handleCancel(item.id)}
+          >
+            <Text style={styles.cancelBtnText}>Cancelar Cita</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#3498db" style={{ marginTop: 50 }} />;
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Mis Citas</Text>
+      
+      {appointments.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>Aún no tienes citas</Text>
+          <Text style={styles.emptySub}>Explora el directorio y reserva tu primera cita.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={[{ type: 'header', title: 'Próximas Citas' }, ...upcoming, { type: 'header', title: 'Historial' }, ...past]}
+          keyExtractor={(item, index) => item.id || `header-${index}`}
+          renderItem={({ item }) => {
+            if (item.type === 'header') {
+              return <Text style={styles.sectionTitle}>{item.title}</Text>;
+            }
+            // Check if it's past by looking at if it's in the 'past' array
+            const isPast = past.some(p => p.id === item.id);
+            return renderItem({ item, isPast });
+          }}
+          contentContainerStyle={{ paddingBottom: 40 }}
+        />
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f8f9fa', padding: 16 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#2c3e50', marginBottom: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#34495e', marginTop: 20, marginBottom: 12 },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3498db',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardPast: { borderLeftColor: '#95a5a6', opacity: 0.8 },
+  cardCancelled: { borderLeftColor: '#e74c3c', opacity: 0.7 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  salonName: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50' },
+  statusBadge: { fontSize: 12, fontWeight: 'bold', color: '#2ecc71', backgroundColor: '#e8f8f5', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
+  statusCancelled: { color: '#e74c3c', backgroundColor: '#fdedec' },
+  serviceText: { fontSize: 15, color: '#34495e', fontWeight: '600', marginBottom: 8 },
+  detailsText: { fontSize: 14, color: '#7f8c8d', marginBottom: 4 },
+  cancelBtn: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
+    backgroundColor: '#fdedec',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fadbd8'
+  },
+  cancelBtnText: { color: '#e74c3c', fontWeight: 'bold', fontSize: 13 },
+  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 60 },
+  emptyTitle: { fontSize: 18, fontWeight: 'bold', color: '#34495e', marginBottom: 8 },
+  emptySub: { fontSize: 14, color: '#7f8c8d', textAlign: 'center' }
+});

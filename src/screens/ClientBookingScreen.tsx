@@ -6,7 +6,7 @@ import { db } from '../config/firebase';
 import { Calendar } from 'react-native-calendars';
 
 export default function ClientBookingScreen({ navigation }: any) {
-  const { role, teamName, tenantId, theme } = useAppContext();
+  const { role, teamName, tenantId, theme, firebaseUser } = useAppContext();
   const styles = getStyles(theme);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ export default function ClientBookingScreen({ navigation }: any) {
   const [teams, setTeams] = useState<any[]>([]);
   
   // Selection
-  const [clientName, setClientName] = useState('');
+  const [clientName, setClientName] = useState(firebaseUser?.displayName || '');
   const [clientPhone, setClientPhone] = useState('');
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);

@@ -34,7 +34,7 @@ export default function AuthScreen({ mode }: Props) {
       case 'auth/user-not-found': return 'No existe cuenta con este email.';
       case 'auth/wrong-password': return 'Contrasena incorrecta.';
       case 'auth/invalid-credential': return 'Email o contrasena incorrectos.';
-      default: return 'Error de autenticacion. Intentalo de nuevo.';
+      default: return code || 'Error desconocido. Inténtalo de nuevo.';
     }
   };
 

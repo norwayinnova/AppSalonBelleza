@@ -7,6 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import AuthScreen from '../screens/AuthScreen';
 import MarketplaceScreen from '../screens/MarketplaceScreen';
+import ClientAppointmentsScreen from '../screens/ClientAppointmentsScreen';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
 import TenantLoginScreen from '../screens/TenantLoginScreen';
 import ClientBookingScreen from '../screens/ClientBookingScreen';
@@ -90,6 +91,50 @@ function MainTabsComponent() {
   );
 }
 
+
+function ClientTabsComponent() {
+  const { setAppMode, logout } = useAppContext();
+  const [activeTab, setActiveTab] = useState('Marketplace');
+  const { width: screenWidth } = useWindowDimensions();
+
+  const tabs = [
+    { name: 'Marketplace', label: 'Explorar Salones', component: MarketplaceScreen },
+    { name: 'MyAppointments', label: 'Mis Citas', component: ClientAppointmentsScreen },
+  ];
+
+  const MIN_TAB_WIDTH = 120;
+  const tabWidth = Math.max(MIN_TAB_WIDTH, screenWidth / tabs.length);
+  const ActiveComponent = tabs.find(t => t.name === activeTab)?.component || MarketplaceScreen;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={[styles.tabBar, { borderBottomColor: '#3498db30', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: 16 }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll} style={{ flex: 1 }}>
+          {tabs.map(tab => {
+            const isActive = activeTab === tab.name;
+            return (
+              <TouchableOpacity
+                key={tab.name}
+                onPress={() => setActiveTab(tab.name)}
+                style={[styles.tabItem, { width: tabWidth }, isActive && { borderBottomColor: '#3498db', borderBottomWidth: 3 }]}
+              >
+                <Text style={[styles.tabLabel, { color: isActive ? '#3498db' : '#666' }, isActive && styles.tabLabelActive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+        <TouchableOpacity onPress={() => { logout(); setAppMode(null); }} style={styles.logoutBtnClient}>
+          <Text style={styles.logoutTextClient}>Salir</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={{ flex: 1 }}>
+        <ActiveComponent />
+      </View>
+    </View>
+  );
+}
 export default function AppNavigator() {
   const { role, logout, appMode, setAppMode, tenantId, setTenantId, theme, firebaseUser, authLoading } = useAppContext();
 
@@ -149,15 +194,18 @@ export default function AppNavigator() {
     if (!tenantId) {
       return (
         <Stack.Screen
-          name="Marketplace"
-          component={MarketplaceScreen}
+          name="ClientTabs"
+          component={ClientTabsComponent}
           options={{
-            headerTitle: 'Directorio de Salones',
+            headerShown: true,
+            headerTitle: 'BeautyTime Marketplace',
+            headerStyle: { backgroundColor: '#3498db' },
+            headerTintColor: '#fff',
             headerLeft: () => (
               <TouchableOpacity onPress={() => setAppMode(null)} style={styles.backBtn}>
-                <Text style={{ color: '#3498db' }}>Volver</Text>
+                <Text style={{ color: '#fff' }}>Volver</Text>
               </TouchableOpacity>
-            ),
+            )
           }}
         />
       );
@@ -209,4 +257,6 @@ const styles = StyleSheet.create({
   tabItem: { paddingVertical: 12, borderBottomWidth: 3, borderBottomColor: 'transparent', alignItems: 'center' },
   tabLabel: { fontSize: 13, color: '#666' },
   tabLabelActive: { fontWeight: 'bold' },
+  logoutBtnClient: { paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#e74c3c', borderRadius: 12 },
+  logoutTextClient: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
 });
