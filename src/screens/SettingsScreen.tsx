@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Switch } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db, storage } from '../config/firebase';
@@ -7,16 +7,16 @@ import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const PRESET_COLORS = [
-  '#D48A9A', // Rosa Avalon
-  '#3498db', // Azul AppBeauty
-  '#2ecc71', // Verde Esmeralda
-  '#e74c3c', // Rojo Carmín
-  '#9b59b6', // Púrpura Elegante
-  '#f1c40f', // Oro
-  '#e67e22', // Naranja Cálido
-  '#1abc9c', // Turquesa
-  '#34495e', // Azul Marino
-  '#795548', // Marrón Tierra
+  '#D48A9A', 
+  '#3498db', 
+  '#2ecc71', 
+  '#e74c3c', 
+  '#9b59b6', 
+  '#f1c40f', 
+  '#e67e22', 
+  '#1abc9c', 
+  '#34495e', 
+  '#795548', 
 ];
 
 export default function SettingsScreen() {
@@ -30,6 +30,13 @@ export default function SettingsScreen() {
   const [logoUrl, setLogoUrl] = useState(theme.logoUrl || null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Pagos
+  const [allowInStore, setAllowInStore] = useState(theme.paymentOptions?.allowInStore ?? true);
+  const [allowBizum, setAllowBizum] = useState(theme.paymentOptions?.allowBizum ?? false);
+  const [bizumPhone, setBizumPhone] = useState(theme.paymentOptions?.bizumPhone || '');
+  const [allowStripe, setAllowStripe] = useState(theme.paymentOptions?.allowStripe ?? false);
+  const [stripePublicKey, setStripePublicKey] = useState(theme.paymentOptions?.stripePublicKey || '');
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -49,7 +56,7 @@ export default function SettingsScreen() {
     try {
       const response = await fetch(uri);
       const blob = await response.blob();
-      const fileRef = ref(storage, `tenants/${tenantId}/logo.jpg`);
+      const fileRef = ref(storage, \	enants/\/logo.jpg\);
       
       const uploadTask = uploadBytesResumable(fileRef, blob);
       
@@ -87,7 +94,14 @@ export default function SettingsScreen() {
         appName,
         primaryColor,
         secondaryColor,
-        darkTextColor
+        darkTextColor,
+        paymentOptions: {
+          allowInStore,
+          allowBizum,
+          bizumPhone,
+          allowStripe,
+          stripePublicKey
+        }
       };
       if (logoUrl) {
         updates.logoUrl = logoUrl;
@@ -177,6 +191,72 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      <View style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Métodos de Cobro</Text>
+        
+        <View style={styles.switchRow}>
+          <View>
+            <Text style={styles.label}>Pago en Local (Efectivo/TPV)</Text>
+            <Text style={styles.helpText}>El cliente paga al terminar el servicio</Text>
+          </View>
+          <Switch 
+            value={allowInStore} 
+            onValueChange={setAllowInStore}
+            trackColor={{ true: theme.primaryColor }}
+          />
+        </View>
+
+        <View style={styles.switchRow}>
+          <View>
+            <Text style={styles.label}>Pago por Bizum</Text>
+            <Text style={styles.helpText}>Cobro manual mediante Bizum</Text>
+          </View>
+          <Switch 
+            value={allowBizum} 
+            onValueChange={setAllowBizum}
+            trackColor={{ true: theme.primaryColor }}
+          />
+        </View>
+        
+        {allowBizum && (
+          <View style={[styles.inputGroup, { marginTop: 10, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: theme.secondaryColor }]}>
+            <Text style={styles.label}>Teléfono para recibir Bizum</Text>
+            <TextInput 
+              style={[styles.input, { borderColor: theme.secondaryColor }]} 
+              value={bizumPhone}
+              onChangeText={setBizumPhone}
+              placeholder="Ej: 600123456"
+              keyboardType="phone-pad"
+            />
+          </View>
+        )}
+
+        <View style={styles.switchRow}>
+          <View>
+            <Text style={styles.label}>Pago con Tarjeta (Stripe)</Text>
+            <Text style={styles.helpText}>Pasarela automática</Text>
+          </View>
+          <Switch 
+            value={allowStripe} 
+            onValueChange={setAllowStripe}
+            trackColor={{ true: theme.primaryColor }}
+          />
+        </View>
+
+        {allowStripe && (
+          <View style={[styles.inputGroup, { marginTop: 10, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: theme.secondaryColor }]}>
+            <Text style={styles.label}>Clave Pública de Stripe (API Key)</Text>
+            <TextInput 
+              style={[styles.input, { borderColor: theme.secondaryColor }]} 
+              value={stripePublicKey}
+              onChangeText={setStripePublicKey}
+              placeholder="pk_test_..."
+              secureTextEntry
+            />
+          </View>
+        )}
+      </View>
+
       <TouchableOpacity 
         style={[styles.saveBtn, { backgroundColor: theme.primaryColor }]} 
         onPress={saveSettings}
@@ -207,8 +287,12 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: 'bold', color: '#555', marginBottom: 8 },
   input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 15, backgroundColor: '#fafafa' },
   colorRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  paletteContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 10 }, paletteCircle: { width: 40, height: 40, borderRadius: 20, elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 3, shadowOffset: {width: 0, height: 1} }, paletteCircleSelected: { borderWidth: 3, borderColor: '#fff', transform: [{ scale: 1.1 }] },
   colorInput: { flex: 1 },
+  paletteContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 10 }, 
+  paletteCircle: { width: 40, height: 40, borderRadius: 20, elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 3, shadowOffset: {width: 0, height: 1} }, 
+  paletteCircleSelected: { borderWidth: 3, borderColor: '#fff', transform: [{ scale: 1.1 }] },
+  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  helpText: { color: '#888', fontSize: 11, marginTop: 2 },
   saveBtn: { padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10, marginBottom: 30, elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: {width: 0, height: 2} },
   saveBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
 });

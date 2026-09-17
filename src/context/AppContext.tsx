@@ -12,6 +12,13 @@ export interface AppTheme {
   backgroundColor: string;
   logoUrl?: string; // Loaded from Firebase
   logoPath?: any;   // Local fallback
+  paymentOptions?: {
+    allowInStore: boolean;
+    allowBizum: boolean;
+    bizumPhone?: string;
+    allowStripe: boolean;
+    stripePublicKey?: string;
+  };
 }
 
 export const defaultThemes: Record<string, AppTheme> = {
@@ -31,7 +38,12 @@ export const defaultThemes: Record<string, AppTheme> = {
     darkTextColor: '#2c3e50',
     lightTextColor: '#FFFFFF',
     backgroundColor: '#FFFFFF',
-    logoPath: require('../../assets/logo.jpg')
+    logoPath: require('../../assets/logo.jpg'),
+    paymentOptions: {
+      allowInStore: true,
+      allowBizum: false,
+      allowStripe: false
+    }
   }
 };
 
