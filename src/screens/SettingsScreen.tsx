@@ -56,7 +56,7 @@ export default function SettingsScreen() {
     try {
       const response = await fetch(uri);
       const blob = await response.blob();
-      const fileRef = ref(storage, \	enants/\/logo.jpg\);
+      const fileRef = ref(storage, `tenants/${tenantId}/logo.jpg`);
       
       const uploadTask = uploadBytesResumable(fileRef, blob);
       
