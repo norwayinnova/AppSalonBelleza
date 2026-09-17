@@ -1,7 +1,8 @@
 import React, { createContext, useState, useContext, ReactNode, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { db, auth } from '../config/firebase';
 
 export interface AppTheme {
   appName: string;
@@ -10,8 +11,8 @@ export interface AppTheme {
   darkTextColor: string;
   lightTextColor: string;
   backgroundColor: string;
-  logoUrl?: string; // Loaded from Firebase
-  logoPath?: any;   // Local fallback
+  logoUrl?: string;
+  logoPath?: any;
   paymentOptions?: {
     allowInStore: boolean;
     allowBizum: boolean;
@@ -60,7 +61,7 @@ export const defaultThemes: Record<string, AppTheme> = {
   }
 };
 
-type Role = 'admin' | 'management' | 'team' | 'cliente' | null;
+type Role = 'admin' | 'management' | 'team' | 'client' | null;
 type ToastType = 'success' | 'error' | 'info';
 
 interface AppContextType {
@@ -69,8 +70,11 @@ interface AppContextType {
   tenantId: string;
   theme: AppTheme;
   appMode: 'client' | 'professional' | null;
+  firebaseUser: User | null;
+  authLoading: boolean;
   setAppMode: (mode: 'client' | 'professional' | null) => void;
   setTenantId: (id: string) => void;
+  setRole: (role: Role) => void;
   loginAsAdmin: () => void;
   loginAsManagement: () => void;
   loginAsTeam: (teamName: string) => void;
@@ -82,21 +86,55 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [role, setRole] = useState<Role>(null);
+  const [role, setRoleState] = useState<Role>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
-  
   const [appMode, setAppModeState] = useState<'client' | 'professional' | null>(null);
   const [tenantId, setTenantIdState] = useState<string>('');
   const [theme, setThemeState] = useState<AppTheme>(defaultThemes['beautytime']);
-  
+  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<ToastType>('success');
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
-  // REACITIVIDAD EN TIEMPO REAL: Escuchar cambios del Tenant
+  // Firebase Auth listener
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, async (user) => {
+      setFirebaseUser(user);
+      if (user) {
+        // Load user profile from Firestore
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.tenantId) {
+              setTenantIdState(data.tenantId);
+              setAppModeState('professional');
+              setRoleState(data.role || 'team');
+            } else {
+              setAppModeState('client');
+              setRoleState('client');
+            }
+          }
+        } catch (e) {
+          console.error('Error loading user profile:', e);
+        }
+      } else {
+        // Signed out - reset state
+        setRoleState(null);
+        setTeamName(null);
+        setTenantIdState('');
+        setAppModeState(null);
+      }
+      setAuthLoading(false);
+    });
+    return () => unsubAuth();
+  }, []);
+
+  // Realtime theme listener
   useEffect(() => {
     if (!tenantId) return;
-
     const tenantRef = doc(db, 'tenants', tenantId);
     const unsubscribe = onSnapshot(tenantRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -105,7 +143,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setThemeState({ ...defaultForTenant, ...data });
       }
     });
-
     return () => unsubscribe();
   }, [tenantId]);
 
@@ -113,44 +150,44 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setAppModeState(mode);
     if (!mode) {
       setTenantIdState('');
-      setRole(null);
+      setRoleState(null);
     }
   };
 
-  const setTenantId = (id: string) => {
-    setTenantIdState(id);
-  };
+  const setTenantId = (id: string) => setTenantIdState(id);
+  const setRole = (r: Role) => setRoleState(r);
+  const loginAsAdmin = () => { setRoleState('admin'); setTeamName(null); };
+  const loginAsManagement = () => { setRoleState('management'); setTeamName(null); };
+  const loginAsTeam = (name: string) => { setRoleState('team'); setTeamName(name); };
+  const loginAsClient = () => { setRoleState('client'); setTeamName(null); };
 
-  const loginAsAdmin = () => { setRole('admin'); setTeamName(null); };
-  const loginAsManagement = () => { setRole('management'); setTeamName(null); };
-  const loginAsTeam = (name: string) => { setRole('team'); setTeamName(name); };
-  const loginAsClient = () => { setRole('cliente'); setTeamName(null); };
-  const logout = () => { setRole(null); setTeamName(null); };
+  const logout = async () => {
+    try { await signOut(auth); } catch (e) {}
+    setRoleState(null);
+    setTeamName(null);
+    setTenantIdState('');
+    setAppModeState(null);
+  };
 
   const showToast = (msg: string, type: ToastType = 'success') => {
     setToastMsg(msg);
     setToastType(type);
-    Animated.spring(slideAnim, {
-      toValue: 50,
-      useNativeDriver: true,
-      speed: 12
-    }).start();
-
+    Animated.spring(slideAnim, { toValue: 50, useNativeDriver: true, speed: 12 }).start();
     setTimeout(() => {
-      Animated.timing(slideAnim, {
-        toValue: -100,
-        duration: 300,
-        useNativeDriver: true
-      }).start();
+      Animated.timing(slideAnim, { toValue: -100, duration: 300, useNativeDriver: true }).start();
     }, 3000);
   };
 
   return (
-    <AppContext.Provider value={{ role, teamName, tenantId, theme, appMode, setAppMode, setTenantId, loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, logout, showToast }}>
+    <AppContext.Provider value={{
+      role, teamName, tenantId, theme, appMode, firebaseUser, authLoading,
+      setAppMode, setTenantId, setRole,
+      loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, logout, showToast
+    }}>
       {children}
       {toastMsg ? (
         <Animated.View style={[
-          styles.toastContainer, 
+          styles.toastContainer,
           { transform: [{ translateY: slideAnim }] },
           toastType === 'success' ? styles.toastSuccess : toastType === 'error' ? styles.toastError : styles.toastInfo
         ]}>
@@ -169,21 +206,11 @@ export const useAppContext = () => {
 
 const styles = StyleSheet.create({
   toastContainer: {
-    position: 'absolute',
-    top: 0,
-    alignSelf: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 9999,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 10,
+    position: 'absolute', top: 0, alignSelf: 'center',
+    paddingVertical: 12, paddingHorizontal: 24, borderRadius: 30,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    zIndex: 9999, elevation: 10,
+    shadowColor: '#000', shadowOpacity: 0.15, shadowOffset: { width: 0, height: 5 }, shadowRadius: 10,
   },
   toastSuccess: { backgroundColor: '#2ecc71' },
   toastError: { backgroundColor: '#e74c3c' },

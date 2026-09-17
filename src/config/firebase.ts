@@ -1,6 +1,7 @@
-﻿import { initializeApp } from 'firebase/app';
+import { initializeApp } from 'firebase/app';
 import { getFirestore, initializeFirestore, persistentLocalCache, memoryLocalCache } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getAuth } from 'firebase/auth';
 import { Platform } from 'react-native';
 
 const firebaseConfig = {
@@ -21,3 +22,4 @@ export const db = initializeFirestore(app, {
 });
 
 export const storage = getStorage(app);
+export const auth = getAuth(app);

@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { Image, View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
-import RoleSelectionScreen from '../screens/RoleSelectionScreen';
-import TenantLoginScreen from '../screens/TenantLoginScreen';
-import WelcomeScreen from '../screens/WelcomeScreen';
-import MarketplaceScreen from '../screens/MarketplaceScreen';
+import { Image, View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
+
+import WelcomeScreen from '../screens/WelcomeScreen';
+import AuthScreen from '../screens/AuthScreen';
+import MarketplaceScreen from '../screens/MarketplaceScreen';
+import RoleSelectionScreen from '../screens/RoleSelectionScreen';
+import TenantLoginScreen from '../screens/TenantLoginScreen';
+import ClientBookingScreen from '../screens/ClientBookingScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import AppointmentsScreen from '../screens/AppointmentsScreen';
 import ServicesScreen from '../screens/ServicesScreen';
@@ -14,7 +17,6 @@ import ClientsScreen from '../screens/ClientsScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import ExpensesScreen from '../screens/ExpensesScreen';
 import InventoryScreen from '../screens/InventoryScreen';
-import ClientBookingScreen from '../screens/ClientBookingScreen';
 import CalculatorScreen from '../screens/CalculatorScreen';
 import PromotionsScreen from '../screens/PromotionsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -24,11 +26,11 @@ const Stack = createNativeStackNavigator();
 function LogoTitle() {
   const { theme } = useAppContext();
   return (
-    <View style={styles.logoTitleContainer}>
-      <Image 
-        style={styles.logo} 
-        source={theme.logoUrl ? { uri: theme.logoUrl } : theme.logoPath || require('../../assets/logo.jpg')} 
-        resizeMode="contain" 
+    <View style={styles.logoRow}>
+      <Image
+        style={styles.logo}
+        source={theme.logoUrl ? { uri: theme.logoUrl } : theme.logoPath || require('../../assets/logo.jpg')}
+        resizeMode="contain"
       />
       <Text style={[styles.headerTitle, { color: theme.lightTextColor || '#fff' }]}>{theme.appName}</Text>
     </View>
@@ -38,11 +40,10 @@ function LogoTitle() {
 function MainTabsComponent() {
   const { role, theme } = useAppContext();
   const [activeTab, setActiveTab] = useState('Calendar');
+  const { width: screenWidth } = useWindowDimensions();
 
   const isAdmin = role === 'admin';
   const isMgmt = role === 'management';
-  const { width: screenWidth } = useWindowDimensions();
-  const MIN_TAB_WIDTH = 90;
 
   const tabs = [
     ...(isAdmin ? [{ name: 'Dashboard', label: 'Dashboard', component: DashboardScreen }] : []),
@@ -57,13 +58,13 @@ function MainTabsComponent() {
     ...(isAdmin ? [{ name: 'Settings', label: 'Ajustes', component: SettingsScreen }] : []),
   ];
 
-  // Make sure activeTab is always valid
+  const MIN_TAB_WIDTH = 90;
+  const tabWidth = Math.max(MIN_TAB_WIDTH, screenWidth / tabs.length);
   const validActive = tabs.find(t => t.name === activeTab) ? activeTab : tabs[0]?.name || 'Calendar';
   const ActiveComponent = tabs.find(t => t.name === validActive)?.component || CalendarScreen;
 
   return (
     <View style={{ flex: 1 }}>
-      {/* CUSTOM TAB BAR */}
       <View style={[styles.tabBar, { borderBottomColor: theme.primaryColor + '30' }]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll}>
           {tabs.map(tab => {
@@ -72,11 +73,7 @@ function MainTabsComponent() {
               <TouchableOpacity
                 key={tab.name}
                 onPress={() => setActiveTab(tab.name)}
-                style={[
-                  styles.tabItem, 
-                  { width: Math.max(MIN_TAB_WIDTH, screenWidth / tabs.length) },
-                  isActive && { borderBottomColor: theme.primaryColor, borderBottomWidth: 3 }
-                ]}
+                style={[styles.tabItem, { width: tabWidth }, isActive && { borderBottomColor: theme.primaryColor, borderBottomWidth: 3 }]}
               >
                 <Text style={[styles.tabLabel, { color: isActive ? theme.primaryColor : '#666' }, isActive && styles.tabLabelActive]}>
                   {tab.label}
@@ -86,8 +83,6 @@ function MainTabsComponent() {
           })}
         </ScrollView>
       </View>
-
-      {/* SCREEN CONTENT */}
       <View style={{ flex: 1 }}>
         <ActiveComponent />
       </View>
@@ -96,12 +91,93 @@ function MainTabsComponent() {
 }
 
 export default function AppNavigator() {
-  const { role, logout, appMode, setAppMode, tenantId, setTenantId, theme } = useAppContext();
+  const { role, logout, appMode, setAppMode, tenantId, setTenantId, theme, firebaseUser, authLoading } = useAppContext();
+
+  if (authLoading) {
+    return (
+      <View style={styles.loadingScreen}>
+        <ActivityIndicator size="large" color="#D48A9A" />
+        <Text style={styles.loadingText}>Cargando...</Text>
+      </View>
+    );
+  }
 
   const handleLogout = () => {
     logout();
-    setTenantId('');
-    setAppMode(null);
+  };
+
+  const renderProfessionalFlow = () => {
+    // Not logged in with Firebase Auth yet
+    if (!firebaseUser) {
+      return <Stack.Screen name="AuthPro" options={{ headerShown: false }}>
+        {() => <AuthScreen mode="professional" />}
+      </Stack.Screen>;
+    }
+    // Logged in but no tenantId in Firestore profile yet (team member first login via old PIN)
+    if (!tenantId) {
+      return <Stack.Screen name="TenantLogin" component={TenantLoginScreen} options={{ headerShown: false }} />;
+    }
+    // Has tenant but no role chosen (admin assigns role)
+    if (!role || role === 'team') {
+      return <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} options={{ headerShown: false }} />;
+    }
+    // Fully authenticated - show main app
+    return (
+      <Stack.Screen
+        name="MainTabs"
+        component={MainTabsComponent}
+        options={{
+          headerTitle: () => <LogoTitle />,
+          headerStyle: { backgroundColor: theme.primaryColor },
+          headerTintColor: theme.lightTextColor || '#fff',
+          headerRight: () => (
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+              <Text style={styles.logoutText}>Cerrar Sesion</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+    );
+  };
+
+  const renderClientFlow = () => {
+    if (!firebaseUser) {
+      return <Stack.Screen name="AuthClient" options={{ headerShown: false }}>
+        {() => <AuthScreen mode="client" />}
+      </Stack.Screen>;
+    }
+    if (!tenantId) {
+      return (
+        <Stack.Screen
+          name="Marketplace"
+          component={MarketplaceScreen}
+          options={{
+            headerTitle: 'Directorio de Salones',
+            headerLeft: () => (
+              <TouchableOpacity onPress={() => setAppMode(null)} style={styles.backBtn}>
+                <Text style={{ color: '#3498db' }}>Volver</Text>
+              </TouchableOpacity>
+            ),
+          }}
+        />
+      );
+    }
+    return (
+      <Stack.Screen
+        name="ClientBooking"
+        component={ClientBookingScreen}
+        options={{
+          headerTitle: () => <LogoTitle />,
+          headerStyle: { backgroundColor: theme.primaryColor },
+          headerTintColor: theme.lightTextColor || '#fff',
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => setTenantId('')} style={styles.backBtn}>
+              <Text style={{ color: theme.lightTextColor || '#fff' }}>Volver</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+    );
   };
 
   return (
@@ -110,56 +186,9 @@ export default function AppNavigator() {
         {!appMode ? (
           <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
         ) : appMode === 'professional' ? (
-          !tenantId ? (
-            <Stack.Screen name="TenantLogin" component={TenantLoginScreen} options={{ headerShown: false }} />
-          ) : !role ? (
-            <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} options={{ headerShown: false }} />
-          ) : (
-            <Stack.Screen
-              name="MainTabs"
-              component={MainTabsComponent}
-              options={{
-                headerTitle: () => <LogoTitle />,
-                headerStyle: { backgroundColor: theme.primaryColor },
-                headerTintColor: theme.lightTextColor || '#fff',
-                headerRight: () => (
-                  <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-                    <Text style={styles.logoutText}>Cerrar Sesión</Text>
-                  </TouchableOpacity>
-                ),
-              }}
-            />
-          )
+          renderProfessionalFlow()
         ) : (
-          !tenantId ? (
-            <Stack.Screen
-              name="Marketplace"
-              component={MarketplaceScreen}
-              options={{
-                headerTitle: 'Directorio de Salones',
-                headerLeft: () => (
-                  <TouchableOpacity onPress={() => setAppMode(null)} style={styles.backBtn}>
-                    <Text style={{ color: '#3498db' }}>Volver</Text>
-                  </TouchableOpacity>
-                ),
-              }}
-            />
-          ) : (
-            <Stack.Screen
-              name="ClientBooking"
-              component={ClientBookingScreen}
-              options={{
-                headerTitle: () => <LogoTitle />,
-                headerStyle: { backgroundColor: theme.primaryColor },
-                headerTintColor: theme.lightTextColor || '#fff',
-                headerLeft: () => (
-                  <TouchableOpacity onPress={() => setTenantId('')} style={styles.backBtn}>
-                    <Text style={{ color: theme.lightTextColor || '#fff' }}>Volver</Text>
-                  </TouchableOpacity>
-                ),
-              }}
-            />
-          )
+          renderClientFlow()
         )}
       </Stack.Navigator>
     </NavigationContainer>
@@ -167,7 +196,9 @@ export default function AppNavigator() {
 }
 
 const styles = StyleSheet.create({
-  logoTitleContainer: { flexDirection: 'row', alignItems: 'center' },
+  loadingScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0d1b2a' },
+  loadingText: { color: 'rgba(255,255,255,0.5)', marginTop: 12, fontSize: 14 },
+  logoRow: { flexDirection: 'row', alignItems: 'center' },
   logo: { width: 35, height: 35, marginRight: 10, borderRadius: 18 },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
   logoutBtn: { padding: 8, backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 20, marginRight: 10 },
@@ -175,7 +206,7 @@ const styles = StyleSheet.create({
   backBtn: { padding: 10 },
   tabBar: { backgroundColor: '#fff', borderBottomWidth: 1 },
   tabScroll: { flexDirection: 'row', alignItems: 'center' },
-  tabItem: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 3, borderBottomColor: 'transparent' },
+  tabItem: { paddingVertical: 12, borderBottomWidth: 3, borderBottomColor: 'transparent', alignItems: 'center' },
   tabLabel: { fontSize: 13, color: '#666' },
   tabLabelActive: { fontWeight: 'bold' },
 });
