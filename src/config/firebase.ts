@@ -1,15 +1,16 @@
-import { initializeApp } from 'firebase/app';
+﻿import { initializeApp } from 'firebase/app';
 import { getFirestore, initializeFirestore, persistentLocalCache, memoryLocalCache } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { Platform } from 'react-native';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAyZYx90mRTu9SfYkmue4oraMiOx-Vfldw",
-  authDomain: "avalonmystic-707e6.firebaseapp.com",
-  projectId: "avalonmystic-707e6",
-  storageBucket: "avalonmystic-707e6.firebasestorage.app",
-  messagingSenderId: "197654005050",
-  appId: "1:197654005050:web:9e860dae88e856d6c0fc03"
+  apiKey: "AIzaSyDRJaQNX2qcCFsWcsOw8eICtEjmm49uWMA",
+  authDomain: "beautymanager-saas.firebaseapp.com",
+  projectId: "beautymanager-saas",
+  storageBucket: "beautymanager-saas.firebasestorage.app",
+  messagingSenderId: "19424492347",
+  appId: "1:19424492347:web:a884e5c889c116414f151e",
+  measurementId: "G-MZZRHDGNW4"
 };
 
 export const app = initializeApp(firebaseConfig);

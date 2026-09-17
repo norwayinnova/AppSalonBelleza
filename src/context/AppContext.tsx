@@ -1,6 +1,38 @@
 ﻿import React, { createContext, useState, useContext, ReactNode, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { themes, AppTheme } from '../config/theme';
+
+export interface AppTheme {
+  appName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  darkTextColor: string;
+  lightTextColor: string;
+  backgroundColor: string;
+  logoUrl?: string; // Loaded from Firebase
+  logoPath?: any;   // Local fallback
+}
+
+// Fallback themes in case Firebase fails or for seeding
+export const defaultThemes: Record<string, AppTheme> = {
+  avalon_mystic: {
+    appName: 'Avalon Mystic',
+    primaryColor: '#D48A9A',
+    secondaryColor: '#f0f0f0',
+    darkTextColor: '#7A4B56',
+    lightTextColor: '#FFFFFF',
+    backgroundColor: '#FFFFFF',
+    logoPath: require('../../assets/logo.jpg')
+  },
+  beautytime: {
+    appName: 'BeautyTime',
+    primaryColor: '#3498db',
+    secondaryColor: '#ecf0f1',
+    darkTextColor: '#2c3e50',
+    lightTextColor: '#FFFFFF',
+    backgroundColor: '#FFFFFF',
+    logoPath: require('../../assets/logo.jpg')
+  }
+};
 
 type Role = 'admin' | 'management' | 'team' | 'cliente' | null;
 type ToastType = 'success' | 'error' | 'info';
@@ -10,7 +42,7 @@ interface AppContextType {
   teamName: string | null;
   tenantId: string;
   theme: AppTheme;
-  setTenantId: (id: string) => void;
+  setTenantData: (id: string, theme: AppTheme) => void;
   loginAsAdmin: () => void;
   loginAsManagement: () => void;
   loginAsTeam: (teamName: string) => void;
@@ -24,14 +56,20 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<Role>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
-  const [tenantId, setTenantIdState] = useState<string>(''); // Default tenant for dev
-  const theme = themes[tenantId] || themes['appbeauty'];
+  
+  // Tenant state
+  const [tenantId, setTenantIdState] = useState<string>('');
+  const [theme, setThemeState] = useState<AppTheme>(defaultThemes['beautytime']);
   
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<ToastType>('success');
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
-  const setTenantId = (id: string) => setTenantIdState(id);
+  const setTenantData = (id: string, newTheme: AppTheme) => {
+    setTenantIdState(id);
+    setThemeState(newTheme);
+  };
+
   const loginAsAdmin = () => { setRole('admin'); setTeamName(null); };
   const loginAsManagement = () => { setRole('management'); setTeamName(null); };
   const loginAsTeam = (name: string) => { setRole('team'); setTeamName(name); };
@@ -57,7 +95,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AppContext.Provider value={{ role, teamName, tenantId, theme, setTenantId, loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, logout, showToast }}>
+    <AppContext.Provider value={{ role, teamName, tenantId, theme, setTenantData, loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, logout, showToast }}>
       {children}
       {toastMsg ? (
         <Animated.View style={[

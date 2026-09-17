@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { collection, doc, onSnapshot, query, orderBy , where} from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -45,7 +45,7 @@ export default function RoleSelectionScreen() {
       if (!adminConfig.pinEnabled || pin === adminConfig.pin) {
         loginAsAdmin();
       } else {
-        setErrorMsg('PIN incorrecto. Inténtalo de nuevo.');
+        setErrorMsg('PIN incorrecto. IntÃ©ntalo de nuevo.');
         setPin('');
       }
     } else if (loginTarget.type === 'management') {
@@ -82,13 +82,13 @@ export default function RoleSelectionScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.logoWrapper}>
-          <Image source={theme.logoPath} style={styles.logo} resizeMode="contain" />
+          <Image source={theme.logoUrl ? { uri: theme.logoUrl } : theme.logoPath || require("../../assets/logo.jpg")} style={styles.logo} resizeMode="contain" />
         </View>
 
         <View style={styles.card}>
           {showPinInput ? (
             <View style={styles.pinSection}>
-              <Text style={styles.pinTitle}>🔐 {loginTarget?.type === 'admin' ? 'Zona Administrador' : loginTarget?.type === 'team' ? `Perfil de ${loginTarget?.team?.name}` : 'Acceso ' + theme.appName}</Text>
+              <Text style={styles.pinTitle}>ðŸ” {loginTarget?.type === 'admin' ? 'Zona Administrador' : loginTarget?.type === 'team' ? `Perfil de ${loginTarget?.team?.name}` : 'Acceso ' + theme.appName}</Text>
               <Text style={styles.pinSubtitle}>Introduce tu PIN de acceso</Text>
               {renderPinDots()}
               <TextInput
@@ -102,30 +102,30 @@ export default function RoleSelectionScreen() {
               />
               {errorMsg ? (
                 <View style={styles.errorBox}>
-                  <Text style={styles.errorText}>❌ {errorMsg}</Text>
+                  <Text style={styles.errorText}>âŒ {errorMsg}</Text>
                 </View>
               ) : null}
               <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: theme.primaryColor }]} onPress={handleSubmitPin}>
-                <Text style={styles.primaryBtnText}>Entrar →</Text>
+                <Text style={styles.primaryBtnText}>Entrar â†’</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.ghostBtn} onPress={() => { setShowPinInput(false); setPin(''); setErrorMsg(''); }}>
-                <Text style={styles.ghostBtnText}>← Volver</Text>
+                <Text style={styles.ghostBtnText}>â† Volver</Text>
               </TouchableOpacity>
             </View>
           ) : (
             <View>
-              <Text style={styles.cardTitle}>¿Quién eres?</Text>
+              <Text style={styles.cardTitle}>Â¿QuiÃ©n eres?</Text>
 
               {/* Cliente */}
               <TouchableOpacity style={[styles.clientBtn, { backgroundColor: theme.darkTextColor, borderColor: theme.primaryColor }]} onPress={loginAsClient}>
                 <View style={styles.btnInner}>
-                  <Text style={styles.btnEmoji}>📅</Text>
+                  <Text style={styles.btnEmoji}>ðŸ“…</Text>
                   <View>
                     <Text style={[styles.adminBtnTitle, {color: '#fff'}]}>Soy Cliente</Text>
                     <Text style={[styles.adminBtnSub, {color: '#eee'}]}>Reservar cita online</Text>
                   </View>
                 </View>
-                <Text style={[styles.chevron, {color: '#fff'}]}>›</Text>
+                <Text style={[styles.chevron, {color: '#fff'}]}>â€º</Text>
               </TouchableOpacity>
 
               <View style={styles.dividerRow}>
@@ -137,31 +137,31 @@ export default function RoleSelectionScreen() {
               {/* Admin */}
               <TouchableOpacity style={styles.adminBtn} onPress={() => initiateLogin({ type: 'admin' })}>
                 <View style={styles.btnInner}>
-                  <Text style={styles.btnEmoji}>👑</Text>
+                  <Text style={styles.btnEmoji}>ðŸ‘‘</Text>
                   <View>
                     <Text style={styles.adminBtnTitle}>Administrador</Text>
                     <Text style={styles.adminBtnSub}>Acceso completo al sistema</Text>
                   </View>
                 </View>
-                <Text style={styles.chevron}>›</Text>
+                <Text style={styles.chevron}>â€º</Text>
               </TouchableOpacity>
 
               {/* Management */}
               <TouchableOpacity style={[styles.mgmtBtn, { borderColor: theme.primaryColor }]} onPress={() => initiateLogin({ type: 'management' })}>
                 <View style={styles.btnInner}>
-                  <Text style={styles.btnEmoji}>📋</Text>
+                  <Text style={styles.btnEmoji}>ðŸ“‹</Text>
                   <View>
                     <Text style={styles.mgmtBtnTitle}>{theme.appName}</Text>
                     <Text style={styles.mgmtBtnSub}>Calendario y operativa</Text>
                   </View>
                 </View>
-                <Text style={styles.chevron}>›</Text>
+                <Text style={styles.chevron}>â€º</Text>
               </TouchableOpacity>
             </View>
           )}
         </View>
 
-        <Text style={styles.footer}>{theme.appName} © 2026</Text>
+        <Text style={styles.footer}>{theme.appName} Â© 2026</Text>
       </ScrollView>
     </View>
   );

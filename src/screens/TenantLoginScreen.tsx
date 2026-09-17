@@ -1,26 +1,55 @@
 ﻿import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 import { useAppContext } from '../context/AppContext';
-import { themes } from '../config/theme';
+import { defaultThemes } from '../context/AppContext';
 
 export default function TenantLoginScreen() {
-  const { setTenantId } = useAppContext();
+  const { setTenantData } = useAppContext();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const cleanCode = code.trim().toLowerCase();
-    if (themes[cleanCode]) {
-      setTenantId(cleanCode);
-    } else {
-      setError('Código de salón no válido.');
+    if (!cleanCode) return;
+    
+    setLoading(true);
+    setError('');
+
+    try {
+      const tenantRef = doc(db, 'tenants', cleanCode);
+      const tenantSnap = await getDoc(tenantRef);
+
+      if (tenantSnap.exists()) {
+        // Tenant exists in Firebase
+        setTenantData(cleanCode, tenantSnap.data() as any);
+      } else {
+        // Tenant does NOT exist. 
+        // Self-seed logic for development: if it's one of our defaults, create it in Firebase!
+        if (defaultThemes[cleanCode]) {
+          const themeToSave = { ...defaultThemes[cleanCode] };
+          delete themeToSave.logoPath; // We can't save 'require' in Firebase
+          await setDoc(tenantRef, themeToSave);
+          
+          setTenantData(cleanCode, defaultThemes[cleanCode]);
+        } else {
+          setError('El código de salón ingresado no existe en nuestra base de datos.');
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      setError('Error de conexión. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>Beauty Manager SaaS</Text>
+        <Text style={styles.title}>BeautyTime SaaS</Text>
         <Text style={styles.subtitle}>Introduce el código de tu Salón para acceder</Text>
         
         <TextInput
@@ -35,12 +64,16 @@ export default function TenantLoginScreen() {
         
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Acceder a mi Salón</Text>
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Acceder a mi Salón</Text>
+          )}
         </TouchableOpacity>
 
         <Text style={styles.helpText}>
-          (Códigos de prueba: "avalon_mystic" o "appbeauty")
+          (Si el salón es nuevo, avisa a tu administrador)
         </Text>
       </View>
     </KeyboardAvoidingView>
@@ -106,6 +139,7 @@ const styles = StyleSheet.create({
     color: '#e74c3c',
     marginBottom: 10,
     fontWeight: 'bold',
+    textAlign: 'center'
   },
   helpText: {
     color: 'rgba(255,255,255,0.3)',

@@ -26,7 +26,7 @@ function LogoTitle() {
     <View style={styles.logoContainer}>
       <Image
         style={styles.logoImage}
-        source={theme.logoPath}
+        source={theme.logoUrl ? { uri: theme.logoUrl } : theme.logoPath || require("../../assets/logo.jpg")}
         resizeMode="contain"
       />
     </View>
