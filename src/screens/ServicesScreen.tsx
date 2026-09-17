@@ -22,7 +22,7 @@ export default function ServicesScreen() {
   const [price, setPrice] = useState('');
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, 'services'), where('tenantId', '==', tenantId));

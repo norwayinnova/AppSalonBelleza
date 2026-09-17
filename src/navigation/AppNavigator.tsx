@@ -47,10 +47,10 @@ function MainTabsComponent() {
     <Tab.Navigator
       screenOptions={{
         tabBarScrollEnabled: true,
-        tabBarItemStyle: { width: 130 },
-        tabBarStyle: { backgroundColor: '#fff', elevation: 2, height: 48 },
+        tabBarItemStyle: { width: 'auto', paddingHorizontal: 12 },
+        tabBarStyle: { backgroundColor: '#fff' },
         tabBarIndicatorStyle: { backgroundColor: theme.primaryColor, height: 3 },
-        tabBarLabelStyle: { fontSize: 12, fontWeight: 'bold', textTransform: 'none' },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: 'bold' },
         tabBarActiveTintColor: theme.primaryColor,
         tabBarInactiveTintColor: '#888',
       }}

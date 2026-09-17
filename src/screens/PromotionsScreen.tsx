@@ -8,7 +8,7 @@ export default function PromotionsScreen() {
   const { role, teamName, tenantId, theme } = useAppContext();
   const styles = getStyles(theme);
   const [promotions, setPromotions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');

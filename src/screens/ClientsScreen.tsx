@@ -52,7 +52,7 @@ export default function ClientsScreen() {
   const [clients, setClients] = useState<Client[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
 
   // 1. Cargar Clientes

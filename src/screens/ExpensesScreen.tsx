@@ -30,7 +30,7 @@ export default function ExpensesScreen() {
   const [selectedTeam, setSelectedTeam] = useState('Oficina/General');
   const [ticketImage, setTicketImage] = useState<string | null>(null);
   const [ticketBase64, setTicketBase64] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {

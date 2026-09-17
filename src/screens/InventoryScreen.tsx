@@ -22,7 +22,7 @@ export default function InventoryScreen({ route }: any) {
 
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   
   // Form state
   const [name, setName] = useState('');

@@ -17,7 +17,7 @@ export default function CalculatorScreen() {
   const { role, teamName, tenantId, theme } = useAppContext();
   const styles = getStyles(theme);
   const [appointments, setAppointments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   
   const [weekOffset, setWeekOffset] = useState(0);
   const [percentages, setPercentages] = useState<Record<string, string>>({});

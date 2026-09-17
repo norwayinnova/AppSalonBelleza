@@ -9,7 +9,7 @@ export default function ClientBookingScreen({ navigation }: any) {
   const { role, teamName, tenantId, theme } = useAppContext();
   const styles = getStyles(theme);
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   
   // Data
   const [services, setServices] = useState<any[]>([]);
