@@ -24,7 +24,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<Role>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
-  const [tenantId, setTenantIdState] = useState<string>('appbeauty'); // Default tenant for dev
+  const [tenantId, setTenantIdState] = useState<string>(''); // Default tenant for dev
   const theme = themes[tenantId] || themes['appbeauty'];
   
   const [toastMsg, setToastMsg] = useState('');

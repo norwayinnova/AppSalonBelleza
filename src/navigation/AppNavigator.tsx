@@ -1,6 +1,7 @@
 ﻿import React, { useEffect } from 'react';
 import { Image, View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform } from 'react-native';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
+import TenantLoginScreen from '../screens/TenantLoginScreen';
 import { useAppContext } from '../context/AppContext';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -111,7 +112,7 @@ function TopTabs() {
 }
 
 export default function AppNavigator() {
-  const { role, logout, loginAsClient, theme } = useAppContext();
+  const { role, logout, loginAsClient, theme, tenantId } = useAppContext();
 
   useEffect(() => {
     if (Platform.OS === 'web') {
@@ -140,7 +141,9 @@ export default function AppNavigator() {
           ) : null
         }}
       >
-        {!role ? (
+        {!tenantId ? (
+          <Stack.Screen name="TenantLogin" component={TenantLoginScreen} options={{ headerShown: false }} />
+        ) : !role ? (
           <Stack.Screen name="Login" component={RoleSelectionScreen} options={{ headerShown: false }} />
         ) : role === 'cliente' ? (
           <Stack.Screen name="ClientBooking" component={ClientBookingScreen} options={{ title: 'Reserva Online' }} />
