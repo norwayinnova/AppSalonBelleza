@@ -24,6 +24,12 @@ export interface AppTheme {
     allowPaypal?: boolean;
     paypalClientId?: string;
   };
+  publicProfile?: {
+    googleProfileUrl?: string;
+    address?: string;
+    contactPhone?: string;
+    galleryUrls?: string[];
+  };
 }
 
 export const defaultThemes: Record<string, AppTheme> = {
