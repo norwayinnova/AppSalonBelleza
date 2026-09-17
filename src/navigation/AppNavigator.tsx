@@ -48,7 +48,7 @@ function MainTabsComponent() {
       screenOptions={{
         tabBarScrollEnabled: true,
         tabBarItemStyle: { width: 130 },
-        tabBarStyle: { backgroundColor: '#fff', elevation: 2 },
+        tabBarStyle: { backgroundColor: '#fff', elevation: 2, height: 48 },
         tabBarIndicatorStyle: { backgroundColor: theme.primaryColor, height: 3 },
         tabBarLabelStyle: { fontSize: 12, fontWeight: 'bold', textTransform: 'none' },
         tabBarActiveTintColor: theme.primaryColor,

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking } from 'react-native';
 import { collection, query, onSnapshot, where, getDocs, addDoc } from 'firebase/firestore';
@@ -32,7 +32,7 @@ export default function ClientBookingScreen({ navigation }: any) {
 
   useEffect(() => {
     // Load services
-    const qSrv = query(collection(db, 'services'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qSrv = query(collection(db, 'services'), where('tenantId', '==', tenantId));
     const unSrv = onSnapshot(qSrv, snap => {
       const list: any[] = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() }));
@@ -40,7 +40,7 @@ export default function ClientBookingScreen({ navigation }: any) {
     });
 
     // Load teams
-    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId));
     const unTeams = onSnapshot(qTeams, snap => {
       const list: any[] = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() }));
@@ -61,7 +61,7 @@ export default function ClientBookingScreen({ navigation }: any) {
     setIsCalculatingSlots(true);
     try {
       // Get all appointments for that day
-      const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
+      const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
       const snap = await getDocs(qApps);
       
       const allApps: any[] = [];
@@ -127,7 +127,7 @@ export default function ClientBookingScreen({ navigation }: any) {
       }
       // Check fidelity silently
       try {
-        const qFidel = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('phone', '==', clientPhone.trim()), where('status', '==', 'completed'));
+        const qFidel = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('phone', '==', clientPhone.trim()), where('status', '==', 'completed'));
         const snap = await getDocs(qFidel);
         if (snap.size === 9) setIsTenthAppointment(true);
         else setIsTenthAppointment(false);
@@ -156,7 +156,7 @@ export default function ClientBookingScreen({ navigation }: any) {
 
       if (selectedTeam.id === 'any') {
         // Find which team is actually free at the selectedTime
-        const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
+        const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
         const snap = await getDocs(qApps);
         const allApps: any[] = [];
         snap.forEach(d => allApps.push(d.data()));
@@ -196,7 +196,7 @@ export default function ClientBookingScreen({ navigation }: any) {
         finalNotes += '\n🌟 10ª Cita - APLICAR 20% DESCUENTO';
       }
 
-      await addDoc(collection(db, 'appointments'), { tenantId, tenantId,
+      await addDoc(collection(db, 'appointments'), { tenantId,
         client: clientName.trim(),
         phone: clientPhone.trim(),
         date: selectedDate,

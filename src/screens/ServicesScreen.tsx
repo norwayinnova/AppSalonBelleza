@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query , where} from 'firebase/firestore';
@@ -25,7 +25,7 @@ export default function ServicesScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, 'services'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const q = query(collection(db, 'services'), where('tenantId', '==', tenantId));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const servicesList: Service[] = [];
       snapshot.forEach((docSnap) => {
@@ -38,7 +38,7 @@ export default function ServicesScreen() {
       setLoading(false);
     });
 
-    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId));
     const unTeams = onSnapshot(qTeams, snap => {
       const tList: any[] = [];
       snap.forEach(d => tList.push({ id: d.id, ...d.data() }));
@@ -73,7 +73,7 @@ export default function ServicesScreen() {
         });
         setEditingId(null);
       } else {
-        await addDoc(collection(db, 'services'), { tenantId, tenantId,
+        await addDoc(collection(db, 'services'), { tenantId,
           ...serviceData,
           createdAt: new Date()
         });

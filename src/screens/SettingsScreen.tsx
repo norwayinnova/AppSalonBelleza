@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Switch, Alert } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { doc, updateDoc } from 'firebase/firestore';

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import {
   View,
@@ -37,7 +37,7 @@ export default function RouteScreen() {
 
   // 1. Cargar equipos dinámicos
   useEffect(() => {
-    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId));
     const unsubscribeTeams = onSnapshot(qTeams, (snapshot) => {
       const teamsList: any[] = [];
       snapshot.forEach(docSnap => teamsList.push({ id: docSnap.id, ...docSnap.data() }));
@@ -52,7 +52,7 @@ export default function RouteScreen() {
 
   // 2. Cargar citas del día seleccionado
   useEffect(() => {
-    const q = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
+    const q = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const appsList: any[] = [];
       snapshot.forEach(doc => appsList.push({ id: doc.id, ...doc.data() }));

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { collection, doc, onSnapshot, query, orderBy , where} from 'firebase/firestore';
 import { db } from '../config/firebase';

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import {
   View,
@@ -57,7 +57,7 @@ export default function ClientsScreen() {
 
   // 1. Cargar Clientes
   useEffect(() => {
-    const qClients = query(collection(db, 'clients'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qClients = query(collection(db, 'clients'), where('tenantId', '==', tenantId));
     const unsubscribeClients = onSnapshot(qClients, (snapshot) => {
       const list: Client[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() } as Client));
@@ -70,7 +70,7 @@ export default function ClientsScreen() {
 
   // 2. Cargar Citas
   useEffect(() => {
-    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId));
     const unsubscribeApps = onSnapshot(qApps, (snapshot) => {
       const list: Appointment[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() } as Appointment));

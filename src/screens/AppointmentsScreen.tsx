@@ -50,7 +50,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
 
   // 1. Cargar Equipos dinámicos desde Firestore
   useEffect(() => {
-    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId));
     const unsubscribeTeams = onSnapshot(qTeams, (snapshot) => {
       const teamsList: any[] = [];
       snapshot.forEach(docSnap => teamsList.push({ id: docSnap.id, ...docSnap.data() }));
@@ -65,7 +65,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
 
   // 2. Cargar Servicios
   useEffect(() => {
-    const unsubscribe = onSnapshot(query(collection(db, 'services'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId)), (snapshot) => {
+    const unsubscribe = onSnapshot(query(collection(db, 'services'), where('tenantId', '==', tenantId)), (snapshot) => {
       const srvs: any[] = [];
       snapshot.forEach(docSnap => srvs.push({ id: docSnap.id, ...docSnap.data() }));
       setServices(srvs);
@@ -75,7 +75,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
 
   // 3. Cargar Citas para el día seleccionado
   useEffect(() => {
-    const q = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', date));
+    const q = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('date', '==', date));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const appsList: any[] = [];
       snapshot.forEach(docSnap => appsList.push({ id: docSnap.id, ...docSnap.data() }));
@@ -93,7 +93,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
     const cleanPhone = text.trim();
     if (cleanPhone.length >= 6) {
       try {
-        const qClient = query(collection(db, 'clients'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('phone', '==', cleanPhone));
+        const qClient = query(collection(db, 'clients'), where('tenantId', '==', tenantId), where('phone', '==', cleanPhone));
         const snap = await getDocs(qClient);
         
         let clientFound: any = null;
@@ -104,7 +104,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
         }
 
         // Buscar historial de citas en appointments (incluso si no está guardado en clients)
-        const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('phone', '==', cleanPhone));
+        const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('phone', '==', cleanPhone));
         const snapApps = await getDocs(qApps);
         
         let cancelledCount = 0;
@@ -296,7 +296,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
       }
 
       // 1. Guardar la cita
-      await addDoc(collection(db, 'appointments'), { tenantId, tenantId,
+      await addDoc(collection(db, 'appointments'), { tenantId,
         client: cleanClient,
         phone: cleanPhone,
         date,
@@ -313,7 +313,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
 
       // 2. Gestionar la ficha de Cliente (Crear nuevo o Actualizar existente)
       if (cleanPhone) {
-        const qClient = query(collection(db, 'clients'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('phone', '==', cleanPhone));
+        const qClient = query(collection(db, 'clients'), where('tenantId', '==', tenantId), where('phone', '==', cleanPhone));
         const snap = await getDocs(qClient);
 
         if (!snap.empty) {
@@ -328,7 +328,7 @@ export default function AppointmentsScreen({ route, navigation }: any) {
           });
         } else {
           // Cliente nuevo: registrar en cartera de clientes
-          await addDoc(collection(db, 'clients'), { tenantId, tenantId,
+          await addDoc(collection(db, 'clients'), { tenantId,
             name: cleanClient,
             phone: cleanPhone,
             address: finalAddress,

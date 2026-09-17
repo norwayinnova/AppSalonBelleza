@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TextInput, TouchableOpacity, Modal } from 'react-native';
 import { collection, onSnapshot, query , where} from 'firebase/firestore';
@@ -43,7 +43,7 @@ export default function DashboardScreen() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   
   // Filtros y Vista
   const [dateFilter, setDateFilter] = useState<'week'|'month'|'year'|'all'>('month');
@@ -64,7 +64,7 @@ export default function DashboardScreen() {
   const [newManagementPin, setNewManagementPin] = useState('');
 
   useEffect(() => {
-    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId));
     const unsubApps = onSnapshot(qApps, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -72,14 +72,14 @@ export default function DashboardScreen() {
       setLoading(false);
     });
 
-    const qExp = query(collection(db, 'expenses'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qExp = query(collection(db, 'expenses'), where('tenantId', '==', tenantId));
     const unsubExp = onSnapshot(qExp, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
       setExpenses(list);
     });
 
-    const qClients = query(collection(db, 'clients'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qClients = query(collection(db, 'clients'), where('tenantId', '==', tenantId));
     const unsubClients = onSnapshot(qClients, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -270,7 +270,7 @@ export default function DashboardScreen() {
       if (vipClient.clientId) {
         await updateDoc(doc(db, 'clients', vipClient.clientId), { vipWelcomeMessageSent: true });
       } else {
-        await addDoc(collection(db, 'clients'), { tenantId, tenantId,
+        await addDoc(collection(db, 'clients'), { tenantId,
           name: vipClient.name,
           phone: vipClient.phone,
           vipWelcomeMessageSent: true,
@@ -309,7 +309,7 @@ export default function DashboardScreen() {
 
     try {
         const { getDocs, query, where, writeBatch, doc, getDoc, setDoc } = require('firebase/firestore');
-        const q = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '<', thresholdDate));
+        const q = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('date', '<', thresholdDate));
         const snap = await getDocs(q);
         
         if (snap.empty) {

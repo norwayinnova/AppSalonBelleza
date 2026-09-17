@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
 import { collection, addDoc, onSnapshot, query, deleteDoc, doc, orderBy , where} from 'firebase/firestore';
@@ -14,7 +14,7 @@ export default function PromotionsScreen() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const q = query(collection(db, 'promotions'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, 'promotions'), where('tenantId', '==', tenantId), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
       const list: any[] = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() }));
@@ -30,7 +30,7 @@ export default function PromotionsScreen() {
       return;
     }
     try {
-      await addDoc(collection(db, 'promotions'), { tenantId, tenantId,
+      await addDoc(collection(db, 'promotions'), { tenantId,
         title: title.trim(),
         message: message.trim(),
         createdAt: new Date()

@@ -34,7 +34,7 @@ export default function ExpensesScreen() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'expenses'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), orderBy('date', 'desc'));
+    const q = query(collection(db, 'expenses'), where('tenantId', '==', tenantId), orderBy('date', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const expensesList: Expense[] = [];
       snapshot.forEach((docSnap) => {
@@ -47,7 +47,7 @@ export default function ExpensesScreen() {
   }, []);
 
   useEffect(() => {
-    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId));
     const unsub = onSnapshot(qTeams, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -121,7 +121,7 @@ export default function ExpensesScreen() {
         downloadUrl = await getDownloadURL(storageRef);
       }
 
-      await addDoc(collection(db, 'expenses'), { tenantId, tenantId,
+      await addDoc(collection(db, 'expenses'), { tenantId,
         concept: concept.trim(),
         amount: parseFloat(amount.replace(',', '.')),
         date: date.trim(),

@@ -1,4 +1,4 @@
-﻿import React, { createContext, useState, useContext, ReactNode, useRef, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -101,7 +101,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onSnapshot(tenantRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as AppTheme;
-        setThemeState(data);
+        const defaultForTenant = defaultThemes[tenantId] || defaultThemes['beautytime'];
+        setThemeState({ ...defaultForTenant, ...data });
       }
     });
 

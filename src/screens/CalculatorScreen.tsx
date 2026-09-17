@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { collection, onSnapshot, query , where} from 'firebase/firestore';
@@ -25,7 +25,7 @@ export default function CalculatorScreen() {
   const [expenses, setExpenses] = useState<any[]>([]);
 
   useEffect(() => {
-    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId));
     const unsubApps = onSnapshot(qApps, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -33,7 +33,7 @@ export default function CalculatorScreen() {
       setLoading(false);
     });
     
-    const qExp = query(collection(db, 'expenses'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qExp = query(collection(db, 'expenses'), where('tenantId', '==', tenantId));
     const unsubExp = onSnapshot(qExp, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -49,7 +49,7 @@ export default function CalculatorScreen() {
 
     try {
       const { addDoc } = require('firebase/firestore');
-      await addDoc(collection(db, 'expenses'), { tenantId, tenantId,
+      await addDoc(collection(db, 'expenses'), { tenantId,
         amount,
         category: 'Nómina',
         description: `Nómina ${team} - Semana ${weekStart}`,

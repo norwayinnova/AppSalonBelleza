@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import {
   View,
@@ -106,18 +106,18 @@ export default function CalendarScreen({ route, navigation }: any) {
 
   // 1. Cargar Equipos desde Firestore
   useEffect(() => {
-    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId));
     const unsubscribeTeams = onSnapshot(qTeams, async (snapshot) => {
       if (snapshot.empty) {
         try {
-          await addDoc(collection(db, 'teams'), { tenantId, tenantId,
+          await addDoc(collection(db, 'teams'), { tenantId,
             name: 'Equipo 1',
             members: 'Carlos y Marcos',
             vehicle: 'Furgoneta 1 (Citroën Berlingo)',
             tools: 'Inyección-Extracción Kärcher, Cepillos, Vaporizador',
             createdAt: new Date()
           });
-          await addDoc(collection(db, 'teams'), { tenantId, tenantId,
+          await addDoc(collection(db, 'teams'), { tenantId,
             name: 'Equipo 2',
             members: 'Andrea y Javier',
             vehicle: 'Furgoneta 2 (Renault Kangoo)',
@@ -137,7 +137,7 @@ export default function CalendarScreen({ route, navigation }: any) {
       }
     });
 
-    const qServices = query(collection(db, 'services'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qServices = query(collection(db, 'services'), where('tenantId', '==', tenantId));
     const unsubscribeServices = onSnapshot(qServices, snap => {
       const srvs: any[] = [];
       snap.forEach(d => srvs.push({ id: d.id, ...d.data() }));
@@ -149,7 +149,7 @@ export default function CalendarScreen({ route, navigation }: any) {
 
   // 2. Cargar Citas y calcular conflictos por equipo
   useEffect(() => {
-    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
+    const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
     const unsubscribeApps = onSnapshot(qApps, (snapshot) => {
       const appsList: Appointment[] = [];
       snapshot.forEach((docSnap) => appsList.push({ id: docSnap.id, ...docSnap.data() } as Appointment));
@@ -190,7 +190,7 @@ export default function CalendarScreen({ route, navigation }: any) {
     const lastDay = new Date(currentMonth.year, currentMonth.month + 1, 0).getDate();
     const endStr = `${currentMonth.year}-${String(currentMonth.month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
     const qMonth = query(
-      collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId),
+      collection(db, 'appointments'), where('tenantId', '==', tenantId),
       where('date', '>=', startStr),
       where('date', '<=', endStr)
     );
@@ -209,7 +209,7 @@ export default function CalendarScreen({ route, navigation }: any) {
     const tDate = tomorrow.toISOString().split('T')[0];
     setTomorrowDateStr(tDate);
 
-    const qTomorrow = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', tDate));
+    const qTomorrow = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('date', '==', tDate));
     const unsubscribe = onSnapshot(qTomorrow, (snapshot) => {
       let pending = 0;
       snapshot.forEach(docSnap => {
@@ -371,7 +371,7 @@ export default function CalendarScreen({ route, navigation }: any) {
         });
         setEditingTeamId(null);
       } else {
-        await addDoc(collection(db, 'teams'), { tenantId, tenantId,
+        await addDoc(collection(db, 'teams'), { tenantId,
           ...teamData,
           createdAt: new Date()
         });

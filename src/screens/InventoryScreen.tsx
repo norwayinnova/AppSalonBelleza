@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, ScrollView } from 'react-native';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, increment , where} from 'firebase/firestore';
@@ -34,7 +34,7 @@ export default function InventoryScreen({ route }: any) {
   const [activeTab, setActiveTab] = useState<'maquinaria' | 'productos' | 'otros'>('productos');
 
   useEffect(() => {
-    const q = query(collection(db, 'inventory'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), orderBy('name', 'asc'));
+    const q = query(collection(db, 'inventory'), where('tenantId', '==', tenantId), orderBy('name', 'asc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: InventoryItem[] = [];
       snapshot.forEach((docSnap) => {
@@ -47,7 +47,7 @@ export default function InventoryScreen({ route }: any) {
   }, []);
 
   useEffect(() => {
-    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
+    const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId));
     const unsub = onSnapshot(qTeams, (snapshot) => {
       const list: any[] = [];
       snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
@@ -100,7 +100,7 @@ export default function InventoryScreen({ route }: any) {
           createdAt: new Date(),
           ...(activeTab === 'maquinaria' ? { totalHours: 0 } : { stock: 0, minStockAlert: parsedMinStock })
         };
-        await addDoc(collection(db, 'inventory'), { tenantId, tenantId, ...newItem });
+        await addDoc(collection(db, 'inventory'), { tenantId, ...newItem });
       }
       cancelEdit();
     } catch (error) {
