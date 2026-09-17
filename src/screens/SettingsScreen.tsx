@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Switch, Alert } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -59,7 +59,7 @@ export default function SettingsScreen() {
     try {
       const response = await fetch(uri);
       const blob = await response.blob();
-      const fileRef = ref(storage, \	enants/\/logo.jpg\);
+      const fileRef = ref(storage, 'tenants/' + tenantId + '/logo.jpg');
       const uploadTask = uploadBytesResumable(fileRef, blob);
       
       uploadTask.on('state_changed', null, 
@@ -90,8 +90,8 @@ export default function SettingsScreen() {
         const uri = result.assets[0].uri;
         const response = await fetch(uri);
         const blob = await response.blob();
-        const fileName = \gal_\.jpg\;
-        const fileRef = ref(storage, \	enants/\/gallery/\\);
+        const fileName = 'gal_' + Date.now() + '.jpg';
+        const fileRef = ref(storage, 'tenants/' + tenantId + '/gallery/' + fileName);
         
         const uploadTask = uploadBytesResumable(fileRef, blob);
         
