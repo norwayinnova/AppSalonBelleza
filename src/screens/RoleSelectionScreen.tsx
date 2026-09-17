@@ -116,23 +116,7 @@ export default function RoleSelectionScreen() {
             <View>
               <Text style={styles.cardTitle}>Â¿QuiÃ©n eres?</Text>
 
-              {/* Cliente */}
-              <TouchableOpacity style={[styles.clientBtn, { backgroundColor: theme.darkTextColor, borderColor: theme.primaryColor }]} onPress={loginAsClient}>
-                <View style={styles.btnInner}>
-                  <Text style={styles.btnEmoji}>👉</Text>
-                  <View>
-                    <Text style={[styles.adminBtnTitle, {color: '#fff'}]}>Soy Cliente</Text>
-                    <Text style={[styles.adminBtnSub, {color: '#eee'}]}>Reservar cita online</Text>
-                  </View>
-                </View>
-                <Text style={[styles.chevron, {color: '#fff'}]}>â€º</Text>
-              </TouchableOpacity>
-
-              <View style={styles.dividerRow}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>Acceso Personal</Text>
-                <View style={styles.dividerLine} />
-              </View>
+              
 
               {/* Admin */}
               <TouchableOpacity style={styles.adminBtn} onPress={() => initiateLogin({ type: 'admin' })}>

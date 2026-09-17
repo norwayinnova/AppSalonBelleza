@@ -1,5 +1,7 @@
-﻿import React, { createContext, useState, useContext, ReactNode, useRef } from 'react';
+﻿import React, { createContext, useState, useContext, ReactNode, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../config/firebase';
 
 export interface AppTheme {
   appName: string;
@@ -12,7 +14,6 @@ export interface AppTheme {
   logoPath?: any;   // Local fallback
 }
 
-// Fallback themes in case Firebase fails or for seeding
 export const defaultThemes: Record<string, AppTheme> = {
   avalon_mystic: {
     appName: 'Avalon Mystic',
@@ -42,7 +43,7 @@ interface AppContextType {
   teamName: string | null;
   tenantId: string;
   theme: AppTheme;
-  setTenantData: (id: string, theme: AppTheme) => void;
+  setTenantId: (id: string) => void;
   loginAsAdmin: () => void;
   loginAsManagement: () => void;
   loginAsTeam: (teamName: string) => void;
@@ -57,7 +58,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<Role>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
   
-  // Tenant state
   const [tenantId, setTenantIdState] = useState<string>('');
   const [theme, setThemeState] = useState<AppTheme>(defaultThemes['beautytime']);
   
@@ -65,9 +65,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [toastType, setToastType] = useState<ToastType>('success');
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
-  const setTenantData = (id: string, newTheme: AppTheme) => {
+  // REACITIVIDAD EN TIEMPO REAL: Escuchar cambios del Tenant
+  useEffect(() => {
+    if (!tenantId) return;
+
+    const tenantRef = doc(db, 'tenants', tenantId);
+    const unsubscribe = onSnapshot(tenantRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data() as AppTheme;
+        setThemeState(data);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [tenantId]);
+
+  const setTenantId = (id: string) => {
     setTenantIdState(id);
-    setThemeState(newTheme);
   };
 
   const loginAsAdmin = () => { setRole('admin'); setTeamName(null); };
@@ -95,7 +109,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AppContext.Provider value={{ role, teamName, tenantId, theme, setTenantData, loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, logout, showToast }}>
+    <AppContext.Provider value={{ role, teamName, tenantId, theme, setTenantId, loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, logout, showToast }}>
       {children}
       {toastMsg ? (
         <Animated.View style={[
