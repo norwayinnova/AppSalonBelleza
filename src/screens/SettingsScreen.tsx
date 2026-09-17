@@ -6,6 +6,19 @@ import { db, storage } from '../config/firebase';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
+const PRESET_COLORS = [
+  '#D48A9A', // Rosa Avalon
+  '#3498db', // Azul AppBeauty
+  '#2ecc71', // Verde Esmeralda
+  '#e74c3c', // Rojo Carmín
+  '#9b59b6', // Púrpura Elegante
+  '#f1c40f', // Oro
+  '#e67e22', // Naranja Cálido
+  '#1abc9c', // Turquesa
+  '#34495e', // Azul Marino
+  '#795548', // Marrón Tierra
+];
+
 export default function SettingsScreen() {
   const { tenantId, theme, showToast } = useAppContext();
   
@@ -130,27 +143,36 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Colores Corporativos</Text>
         
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Color Primario (Hexadecimal)</Text>
-          <View style={styles.colorRow}>
-            <View style={[styles.colorPreview, { backgroundColor: primaryColor }]} />
-            <TextInput 
-              style={[styles.input, styles.colorInput, { borderColor: theme.secondaryColor }]} 
-              value={primaryColor}
-              onChangeText={setPrimaryColor}
-              placeholder="#3498db"
-            />
+          <Text style={styles.label}>Color Primario</Text>
+          <View style={styles.paletteContainer}>
+            {PRESET_COLORS.map(color => (
+              <TouchableOpacity 
+                key={color}
+                style={[
+                  styles.paletteCircle, 
+                  { backgroundColor: color },
+                  primaryColor === color && styles.paletteCircleSelected
+                ]}
+                onPress={() => setPrimaryColor(color)}
+              />
+            ))}
           </View>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Color Texto Oscuro (Opcional)</Text>
-          <View style={styles.colorRow}>
-            <View style={[styles.colorPreview, { backgroundColor: darkTextColor }]} />
-            <TextInput 
-              style={[styles.input, styles.colorInput, { borderColor: theme.secondaryColor }]} 
-              value={darkTextColor}
-              onChangeText={setDarkTextColor}
-            />
+          <Text style={styles.label}>Color Texto Oscuro (Acentos)</Text>
+          <View style={styles.paletteContainer}>
+            {['#2c3e50', '#7A4B56', '#222222', '#555555', '#4A2311', '#1A365D'].map(color => (
+              <TouchableOpacity 
+                key={color}
+                style={[
+                  styles.paletteCircle, 
+                  { backgroundColor: color },
+                  darkTextColor === color && styles.paletteCircleSelected
+                ]}
+                onPress={() => setDarkTextColor(color)}
+              />
+            ))}
           </View>
         </View>
       </View>
@@ -185,7 +207,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: 'bold', color: '#555', marginBottom: 8 },
   input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 15, backgroundColor: '#fafafa' },
   colorRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  colorPreview: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: '#ddd' },
+  paletteContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 10 }, paletteCircle: { width: 40, height: 40, borderRadius: 20, elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 3, shadowOffset: {width: 0, height: 1} }, paletteCircleSelected: { borderWidth: 3, borderColor: '#fff', transform: [{ scale: 1.1 }] },
   colorInput: { flex: 1 },
   saveBtn: { padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10, marginBottom: 30, elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: {width: 0, height: 2} },
   saveBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
