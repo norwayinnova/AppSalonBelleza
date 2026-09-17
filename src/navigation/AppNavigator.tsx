@@ -37,12 +37,40 @@ function LogoTitle() {
   );
 }
 
-export default function AppNavigator() {
-  const { role, logout, appMode, setAppMode, tenantId, setTenantId, theme } = useAppContext();
-
+function MainTabsComponent() {
+  const { role, theme } = useAppContext();
   const isAdmin = role === 'admin';
   const isManagement = role === 'management';
   const showAdminOnly = isAdmin;
+
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarScrollEnabled: true,
+        tabBarItemStyle: { width: 130 },
+        tabBarStyle: { backgroundColor: '#fff', elevation: 2 },
+        tabBarIndicatorStyle: { backgroundColor: theme.primaryColor, height: 3 },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: 'bold', textTransform: 'none' },
+        tabBarActiveTintColor: theme.primaryColor,
+        tabBarInactiveTintColor: '#888',
+      }}
+    >
+      {showAdminOnly && <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: 'Dashboard' }} />}
+      <Tab.Screen name="Calendar" component={CalendarScreen} options={{ tabBarLabel: 'Calendario' }} />
+      <Tab.Screen name="Appointments" component={AppointmentsScreen} options={{ tabBarLabel: 'Nueva Cita' }} />
+      {isAdmin && <Tab.Screen name="Clients" component={ClientsScreen} options={{ tabBarLabel: 'Clientes' }} />}
+      {(isAdmin || isManagement) && <Tab.Screen name="Services" component={ServicesScreen} options={{ tabBarLabel: 'Servicios' }} />}
+      {isAdmin && <Tab.Screen name="Expenses" component={ExpensesScreen} options={{ tabBarLabel: 'Gastos' }} />}
+      {showAdminOnly && <Tab.Screen name="Calculator" component={CalculatorScreen} options={{ tabBarLabel: 'Calculadora' }} />}
+      {showAdminOnly && <Tab.Screen name="Promotions" component={PromotionsScreen} options={{ tabBarLabel: 'Promociones' }} />}
+      <Tab.Screen name="Inventory" component={InventoryScreen} options={{ tabBarLabel: 'Inventario' }} />
+      {showAdminOnly && <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: 'Ajustes' }} />}
+    </Tab.Navigator>
+  );
+}
+
+export default function AppNavigator() {
+  const { role, logout, appMode, setAppMode, tenantId, setTenantId, theme } = useAppContext();
 
   const handleLogout = () => {
     logout();
@@ -67,6 +95,7 @@ export default function AppNavigator() {
           ) : (
             <Stack.Screen 
               name="MainTabs" 
+              component={MainTabsComponent}
               options={{
                 headerTitle: () => <LogoTitle />,
                 headerStyle: { backgroundColor: theme.primaryColor },
@@ -77,32 +106,7 @@ export default function AppNavigator() {
                   </TouchableOpacity>
                 ),
               }}
-            >
-              {() => (
-                <Tab.Navigator
-                  screenOptions={{
-                    tabBarScrollEnabled: true,
-                    tabBarItemStyle: { width: 130 },
-                    tabBarStyle: { backgroundColor: '#fff', elevation: 2 },
-                    tabBarIndicatorStyle: { backgroundColor: theme.primaryColor, height: 3 },
-                    tabBarLabelStyle: { fontSize: 12, fontWeight: 'bold', textTransform: 'none' },
-                    tabBarActiveTintColor: theme.primaryColor,
-                    tabBarInactiveTintColor: '#888',
-                  }}
-                >
-                  {showAdminOnly && <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: 'Dashboard' }} />}
-                  <Tab.Screen name="Calendar" component={CalendarScreen} options={{ tabBarLabel: 'Calendario' }} />
-                  <Tab.Screen name="Appointments" component={AppointmentsScreen} options={{ tabBarLabel: 'Nueva Cita' }} />
-                  {isAdmin && <Tab.Screen name="Clients" component={ClientsScreen} options={{ tabBarLabel: 'Clientes' }} />}
-                  {(isAdmin || isManagement) && <Tab.Screen name="Services" component={ServicesScreen} options={{ tabBarLabel: 'Servicios' }} />}
-                  {isAdmin && <Tab.Screen name="Expenses" component={ExpensesScreen} options={{ tabBarLabel: 'Gastos' }} />}
-                  {showAdminOnly && <Tab.Screen name="Calculator" component={CalculatorScreen} options={{ tabBarLabel: 'Calculadora' }} />}
-                  {showAdminOnly && <Tab.Screen name="Promotions" component={PromotionsScreen} options={{ tabBarLabel: 'Promociones' }} />}
-                  <Tab.Screen name="Inventory" component={InventoryScreen} options={{ tabBarLabel: 'Inventario' }} />
-                  {showAdminOnly && <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: 'Ajustes' }} />}
-                </Tab.Navigator>
-              )}
-            </Stack.Screen>
+            />
           )
 
         ) : (
