@@ -7,7 +7,7 @@ export default function WelcomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>¡Bienvenido!</Text>
+      <Text style={styles.title}>¡¡Bienvenido!!</Text>
       <Text style={styles.subtitle}>¿Qué estás buscando hoy?</Text>
 
       <TouchableOpacity style={styles.clientBtn} onPress={() => setAppMode('client')}>

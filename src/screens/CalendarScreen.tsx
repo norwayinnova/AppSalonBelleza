@@ -172,7 +172,7 @@ export default function CalendarScreen({ route, navigation }: any) {
           if (freeTimeMins < 0) {
             newConflicts[next.id] = `⚠️ Solapamiento: La cita anterior acaba a las ${Math.floor(currentEndTimeMins / 60)}:${(currentEndTimeMins % 60).toString().padStart(2, '0')}.`;
           } else if (freeTimeMins < estimatedTravelTime) {
-            newConflicts[next.id] = `🚗 ¡Ojo! Solo hay ${freeTimeMins} min para llegar.`;
+            newConflicts[next.id] = `🚗 ¡¡Ojo! Solo hay ${freeTimeMins} min para llegar.`;
           }
         }
       });

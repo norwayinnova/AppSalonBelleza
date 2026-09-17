@@ -101,7 +101,7 @@ export default function SettingsScreen() {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             setGalleryUrls([...galleryUrls, downloadURL]);
             setUploadingGallery(false);
-            showToast('Foto aadida a la galera', 'success');
+            showToast('Foto añadida a la galera', 'success');
           }
         );
       } catch (e) {
@@ -112,7 +112,7 @@ export default function SettingsScreen() {
   };
 
   const removeGalleryImage = (index: number) => {
-    Alert.alert('Eliminar foto', 'Seguro que deseas quitar esta foto de tu escaparate?', [
+    Alert.alert('Eliminar foto', '¿Seguro que deseas quitar esta foto de tu escaparate?', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: () => {
           const newG = [...galleryUrls];
@@ -150,7 +150,7 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.backgroundColor || '#f5f7fa' }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.darkTextColor }]}>Ajustes de mi Saln</Text>
+        <Text style={[styles.title, { color: theme.darkTextColor }]}>Ajustes de mi Salón</Text>
         <Text style={styles.subtitle}>Personaliza tu escaparate en el Marketplace</Text>
       </View>
 
@@ -167,26 +167,26 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Nombre del Saln</Text>
+          <Text style={styles.label}>Nombre del Salón</Text>
           <TextInput style={[styles.input, { borderColor: theme.secondaryColor }]} value={appName} onChangeText={setAppName} placeholder="Ej: BeautyTime" />
         </View>
       </View>
 
       {/* INFORMACION PUBLICA */}
       <View style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Informacin Pblica</Text>
-        <Text style={styles.helpTextDesc}>Estos datos sern visibles para los clientes en el Marketplace.</Text>
+        <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Información Pública</Text>
+        <Text style={styles.helpTextDesc}>Estos datos serán visibles para los clientes en el Marketplace.</Text>
         
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Direccin del Local</Text>
+          <Text style={styles.label}>Dirección del Local</Text>
           <TextInput style={[styles.input, { borderColor: theme.secondaryColor }]} value={address} onChangeText={setAddress} placeholder="Ej: Calle Mayor 12, Madrid" />
         </View>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Telfono Pblico de Contacto</Text>
+          <Text style={styles.label}>Teléfono Público de Contacto</Text>
           <TextInput style={[styles.input, { borderColor: theme.secondaryColor }]} value={contactPhone} onChangeText={setContactPhone} placeholder="Ej: 910000000" keyboardType="phone-pad" />
         </View>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Enlace a Reseas de Google (Opcional)</Text>
+          <Text style={styles.label}>Enlace a Reseñas de Google (Opcional)</Text>
           <TextInput style={[styles.input, { borderColor: theme.secondaryColor }]} value={googleProfileUrl} onChangeText={setGoogleProfileUrl} placeholder="https://g.page/..." />
         </View>
       </View>
@@ -194,12 +194,12 @@ export default function SettingsScreen() {
       {/* GALERIA */}
       <View style={styles.card}>
         <View style={styles.rowBetween}>
-          <Text style={[styles.sectionTitle, { color: theme.primaryColor, marginBottom: 0 }]}>Galera de Trabajos</Text>
+          <Text style={[styles.sectionTitle, { color: theme.primaryColor, marginBottom: 0 }]}>Galería de Trabajos</Text>
           <TouchableOpacity style={[styles.addPhotoBtn, { backgroundColor: theme.primaryColor }]} onPress={addGalleryImage} disabled={uploadingGallery}>
             {uploadingGallery ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.addPhotoText}>+ Subir Foto</Text>}
           </TouchableOpacity>
         </View>
-        <Text style={styles.helpTextDesc}>Sube fotos de tu local o de tus mejores trabajos. Se comprimirn automticamente.</Text>
+        <Text style={styles.helpTextDesc}>Sube fotos de tu local o de tus mejores trabajos. Se comprimirán automáticamente.</Text>
         
         <View style={styles.galleryGrid}>
           {galleryUrls.map((uri, idx) => (
@@ -209,7 +209,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           ))}
           {galleryUrls.length === 0 && !uploadingGallery && (
-            <Text style={styles.noPhotosText}>An no has subido ninguna foto.</Text>
+            <Text style={styles.noPhotosText}>Aún no has subido ninguna foto.</Text>
           )}
         </View>
       </View>
@@ -227,7 +227,7 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Mtodos de Cobro</Text>
+        <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Métodos de Cobro</Text>
         <View style={styles.switchRow}>
           <View style={{flex: 1}}><Text style={styles.label}>Pago en Local (Efectivo/TPV)</Text></View>
           <Switch value={allowInStore} onValueChange={setAllowInStore} trackColor={{ true: theme.primaryColor }} />
@@ -238,7 +238,7 @@ export default function SettingsScreen() {
         </View>
         {allowBizum && (
           <View style={[styles.inputGroup, { marginTop: 5, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: theme.secondaryColor }]}>
-            <Text style={styles.label}>Telfono Bizum</Text>
+            <Text style={styles.label}>Teléfono Bizum</Text>
             <TextInput style={[styles.input, { borderColor: theme.secondaryColor }]} value={bizumPhone} onChangeText={setBizumPhone} keyboardType="phone-pad" />
           </View>
         )}
@@ -258,7 +258,7 @@ export default function SettingsScreen() {
         </View>
         {allowRedsys && (
           <View style={[styles.inputGroup, { marginTop: 5, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: theme.secondaryColor }]}>
-            <Text style={styles.label}>Cdigo FUC</Text>
+            <Text style={styles.label}>Código FUC</Text>
             <TextInput style={[styles.input, { borderColor: theme.secondaryColor, marginBottom: 10 }]} value={redsysFuc} onChangeText={setRedsysFuc} />
             <Text style={styles.label}>Clave Secreta</Text>
             <TextInput style={[styles.input, { borderColor: theme.secondaryColor }]} value={redsysKey} onChangeText={setRedsysKey} secureTextEntry />

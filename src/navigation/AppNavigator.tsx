@@ -124,7 +124,7 @@ export default function AppNavigator() {
                 headerTintColor: theme.lightTextColor || '#fff',
                 headerRight: () => (
                   <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-                    <Text style={styles.logoutText}>Cerrar Sesion</Text>
+                    <Text style={styles.logoutText}>Cerrar Sesión</Text>
                   </TouchableOpacity>
                 ),
               }}
