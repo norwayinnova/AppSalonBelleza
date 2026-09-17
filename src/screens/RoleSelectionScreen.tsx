@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { collection, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -87,7 +87,7 @@ export default function RoleSelectionScreen() {
         <View style={styles.card}>
           {showPinInput ? (
             <View style={styles.pinSection}>
-              <Text style={styles.pinTitle}>🔐 {loginTarget?.type === 'admin' ? 'Zona Administrador' : loginTarget?.type === 'team' ? Perfil de  : 'Acceso ' + theme.appName}</Text>
+              <Text style={styles.pinTitle}>🔐 {loginTarget?.type === 'admin' ? 'Zona Administrador' : loginTarget?.type === 'team' ? `Perfil de ${loginTarget?.team?.name}` : 'Acceso ' + theme.appName}</Text>
               <Text style={styles.pinSubtitle}>Introduce tu PIN de acceso</Text>
               {renderPinDots()}
               <TextInput
