@@ -119,7 +119,7 @@ export default function RoleSelectionScreen() {
               {/* Cliente */}
               <TouchableOpacity style={[styles.clientBtn, { backgroundColor: theme.darkTextColor, borderColor: theme.primaryColor }]} onPress={loginAsClient}>
                 <View style={styles.btnInner}>
-                  <Text style={styles.btnEmoji}>ðŸ“…</Text>
+                  <Text style={styles.btnEmoji}>👉</Text>
                   <View>
                     <Text style={[styles.adminBtnTitle, {color: '#fff'}]}>Soy Cliente</Text>
                     <Text style={[styles.adminBtnSub, {color: '#eee'}]}>Reservar cita online</Text>
@@ -137,7 +137,7 @@ export default function RoleSelectionScreen() {
               {/* Admin */}
               <TouchableOpacity style={styles.adminBtn} onPress={() => initiateLogin({ type: 'admin' })}>
                 <View style={styles.btnInner}>
-                  <Text style={styles.btnEmoji}>ðŸ‘‘</Text>
+                  <Text style={styles.btnEmoji}>👉</Text>
                   <View>
                     <Text style={styles.adminBtnTitle}>Administrador</Text>
                     <Text style={styles.adminBtnSub}>Acceso completo al sistema</Text>
@@ -149,7 +149,7 @@ export default function RoleSelectionScreen() {
               {/* Management */}
               <TouchableOpacity style={[styles.mgmtBtn, { borderColor: theme.primaryColor }]} onPress={() => initiateLogin({ type: 'management' })}>
                 <View style={styles.btnInner}>
-                  <Text style={styles.btnEmoji}>ðŸ“‹</Text>
+                  <Text style={styles.btnEmoji}>👉</Text>
                   <View>
                     <Text style={styles.mgmtBtnTitle}>{theme.appName}</Text>
                     <Text style={styles.mgmtBtnSub}>Calendario y operativa</Text>
@@ -161,7 +161,7 @@ export default function RoleSelectionScreen() {
           )}
         </View>
 
-        <Text style={styles.footer}>{theme.appName} Â© 2026</Text>
+        <Text style={styles.footer}>{theme.appName} Â©© 2026</Text>
       </ScrollView>
     </View>
   );
