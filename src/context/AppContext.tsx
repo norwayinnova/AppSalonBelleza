@@ -18,6 +18,11 @@ export interface AppTheme {
     bizumPhone?: string;
     allowStripe: boolean;
     stripePublicKey?: string;
+    allowRedsys?: boolean;
+    redsysFuc?: string;
+    redsysKey?: string;
+    allowPaypal?: boolean;
+    paypalClientId?: string;
   };
 }
 
@@ -42,7 +47,9 @@ export const defaultThemes: Record<string, AppTheme> = {
     paymentOptions: {
       allowInStore: true,
       allowBizum: false,
-      allowStripe: false
+      allowStripe: false,
+      allowRedsys: false,
+      allowPaypal: false
     }
   }
 };

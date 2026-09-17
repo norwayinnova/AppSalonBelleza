@@ -35,8 +35,16 @@ export default function SettingsScreen() {
   const [allowInStore, setAllowInStore] = useState(theme.paymentOptions?.allowInStore ?? true);
   const [allowBizum, setAllowBizum] = useState(theme.paymentOptions?.allowBizum ?? false);
   const [bizumPhone, setBizumPhone] = useState(theme.paymentOptions?.bizumPhone || '');
+  
   const [allowStripe, setAllowStripe] = useState(theme.paymentOptions?.allowStripe ?? false);
   const [stripePublicKey, setStripePublicKey] = useState(theme.paymentOptions?.stripePublicKey || '');
+
+  const [allowRedsys, setAllowRedsys] = useState(theme.paymentOptions?.allowRedsys ?? false);
+  const [redsysFuc, setRedsysFuc] = useState(theme.paymentOptions?.redsysFuc || '');
+  const [redsysKey, setRedsysKey] = useState(theme.paymentOptions?.redsysKey || '');
+
+  const [allowPaypal, setAllowPaypal] = useState(theme.paymentOptions?.allowPaypal ?? false);
+  const [paypalClientId, setPaypalClientId] = useState(theme.paymentOptions?.paypalClientId || '');
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -56,7 +64,7 @@ export default function SettingsScreen() {
     try {
       const response = await fetch(uri);
       const blob = await response.blob();
-      const fileRef = ref(storage, `tenants/${tenantId}/logo.jpg`);
+      const fileRef = ref(storage, \	enants/\/logo.jpg\);
       
       const uploadTask = uploadBytesResumable(fileRef, blob);
       
@@ -100,7 +108,12 @@ export default function SettingsScreen() {
           allowBizum,
           bizumPhone,
           allowStripe,
-          stripePublicKey
+          stripePublicKey,
+          allowRedsys,
+          redsysFuc,
+          redsysKey,
+          allowPaypal,
+          paypalClientId
         }
       };
       if (logoUrl) {
@@ -191,70 +204,81 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      {/* METODOS DE COBRO */}
       <View style={styles.card}>
         <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Métodos de Cobro</Text>
         
+        {/* LOCAL */}
         <View style={styles.switchRow}>
-          <View>
+          <View style={{flex: 1}}>
             <Text style={styles.label}>Pago en Local (Efectivo/TPV)</Text>
             <Text style={styles.helpText}>El cliente paga al terminar el servicio</Text>
           </View>
-          <Switch 
-            value={allowInStore} 
-            onValueChange={setAllowInStore}
-            trackColor={{ true: theme.primaryColor }}
-          />
+          <Switch value={allowInStore} onValueChange={setAllowInStore} trackColor={{ true: theme.primaryColor }} />
         </View>
 
+        {/* BIZUM */}
         <View style={styles.switchRow}>
-          <View>
+          <View style={{flex: 1}}>
             <Text style={styles.label}>Pago por Bizum</Text>
-            <Text style={styles.helpText}>Cobro manual mediante Bizum</Text>
+            <Text style={styles.helpText}>Cobro manual mediante número de móvil</Text>
           </View>
-          <Switch 
-            value={allowBizum} 
-            onValueChange={setAllowBizum}
-            trackColor={{ true: theme.primaryColor }}
-          />
+          <Switch value={allowBizum} onValueChange={setAllowBizum} trackColor={{ true: theme.primaryColor }} />
         </View>
-        
         {allowBizum && (
-          <View style={[styles.inputGroup, { marginTop: 10, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: theme.secondaryColor }]}>
+          <View style={[styles.inputGroup, { marginTop: 5, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: theme.secondaryColor }]}>
             <Text style={styles.label}>Teléfono para recibir Bizum</Text>
-            <TextInput 
-              style={[styles.input, { borderColor: theme.secondaryColor }]} 
-              value={bizumPhone}
-              onChangeText={setBizumPhone}
-              placeholder="Ej: 600123456"
-              keyboardType="phone-pad"
-            />
+            <TextInput style={[styles.input, { borderColor: theme.secondaryColor }]} value={bizumPhone} onChangeText={setBizumPhone} placeholder="Ej: 600123456" keyboardType="phone-pad" />
           </View>
         )}
 
+        {/* STRIPE */}
         <View style={styles.switchRow}>
-          <View>
+          <View style={{flex: 1}}>
             <Text style={styles.label}>Pago con Tarjeta (Stripe)</Text>
-            <Text style={styles.helpText}>Pasarela automática</Text>
+            <Text style={styles.helpText}>Pasarela automática moderna</Text>
           </View>
-          <Switch 
-            value={allowStripe} 
-            onValueChange={setAllowStripe}
-            trackColor={{ true: theme.primaryColor }}
-          />
+          <Switch value={allowStripe} onValueChange={setAllowStripe} trackColor={{ true: theme.primaryColor }} />
         </View>
-
         {allowStripe && (
-          <View style={[styles.inputGroup, { marginTop: 10, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: theme.secondaryColor }]}>
-            <Text style={styles.label}>Clave Pública de Stripe (API Key)</Text>
-            <TextInput 
-              style={[styles.input, { borderColor: theme.secondaryColor }]} 
-              value={stripePublicKey}
-              onChangeText={setStripePublicKey}
-              placeholder="pk_test_..."
-              secureTextEntry
-            />
+          <View style={[styles.inputGroup, { marginTop: 5, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: theme.secondaryColor }]}>
+            <Text style={styles.label}>Clave Pública de Stripe</Text>
+            <TextInput style={[styles.input, { borderColor: theme.secondaryColor }]} value={stripePublicKey} onChangeText={setStripePublicKey} placeholder="pk_test_..." secureTextEntry />
           </View>
         )}
+
+        {/* REDSYS */}
+        <View style={styles.switchRow}>
+          <View style={{flex: 1}}>
+            <Text style={styles.label}>Pago con Tarjeta (Redsys)</Text>
+            <Text style={styles.helpText}>TPV Virtual de tu propio banco</Text>
+          </View>
+          <Switch value={allowRedsys} onValueChange={setAllowRedsys} trackColor={{ true: theme.primaryColor }} />
+        </View>
+        {allowRedsys && (
+          <View style={[styles.inputGroup, { marginTop: 5, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: theme.secondaryColor }]}>
+            <Text style={styles.label}>Código FUC de Comercio</Text>
+            <TextInput style={[styles.input, { borderColor: theme.secondaryColor, marginBottom: 10 }]} value={redsysFuc} onChangeText={setRedsysFuc} placeholder="Ej: 123456789" />
+            <Text style={styles.label}>Clave Secreta de Encriptación</Text>
+            <TextInput style={[styles.input, { borderColor: theme.secondaryColor }]} value={redsysKey} onChangeText={setRedsysKey} placeholder="Clave SHA-256" secureTextEntry />
+          </View>
+        )}
+
+        {/* PAYPAL */}
+        <View style={styles.switchRow}>
+          <View style={{flex: 1}}>
+            <Text style={styles.label}>Pago con PayPal</Text>
+            <Text style={styles.helpText}>Pagar usando cuenta de PayPal</Text>
+          </View>
+          <Switch value={allowPaypal} onValueChange={setAllowPaypal} trackColor={{ true: theme.primaryColor }} />
+        </View>
+        {allowPaypal && (
+          <View style={[styles.inputGroup, { marginTop: 5, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: theme.secondaryColor }]}>
+            <Text style={styles.label}>Client ID de PayPal</Text>
+            <TextInput style={[styles.input, { borderColor: theme.secondaryColor }]} value={paypalClientId} onChangeText={setPaypalClientId} placeholder="Client ID..." secureTextEntry />
+          </View>
+        )}
+
       </View>
 
       <TouchableOpacity 
@@ -292,7 +316,7 @@ const styles = StyleSheet.create({
   paletteCircle: { width: 40, height: 40, borderRadius: 20, elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 3, shadowOffset: {width: 0, height: 1} }, 
   paletteCircleSelected: { borderWidth: 3, borderColor: '#fff', transform: [{ scale: 1.1 }] },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  helpText: { color: '#888', fontSize: 11, marginTop: 2 },
+  helpText: { color: '#888', fontSize: 11, marginTop: 2, paddingRight: 20 },
   saveBtn: { padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10, marginBottom: 30, elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: {width: 0, height: 2} },
   saveBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
 });
