@@ -122,7 +122,7 @@ export default function ClientBookingScreen({ navigation }: any) {
   const handleNextStep = async () => {
     if (step === 1) {
       if (!clientName.trim() || !clientPhone.trim() || clientPhone.length < 6) {
-        alert('Por favor, introduce tu nombre y un telÃ©fono vÃ¡lido.');
+        alert('Por favor, introduce tu nombre y un teléfono válido.');
         return;
       }
       // Check fidelity silently
@@ -193,7 +193,7 @@ export default function ClientBookingScreen({ navigation }: any) {
 
       let finalNotes = 'Reserva Online - Fianza pagada';
       if (isTenthAppointment) {
-        finalNotes += '\nðŸŒŸ 10Âª Cita - APLICAR 20% DESCUENTO';
+        finalNotes += '\n🌟 10ª Cita - APLICAR 20% DESCUENTO';
       }
 
       await addDoc(collection(db, 'appointments'), { tenantId, tenantId,
@@ -206,7 +206,7 @@ export default function ClientBookingScreen({ navigation }: any) {
         price: selectedService.price || '0',
         team: assignedTeamName,
         status: 'pending',
-        paymentStatus: 'pending', // La fianza estÃ¡ pagada, pero el total queda pendiente
+        paymentStatus: 'pending', // La fianza está pagada, pero el total queda pendiente
         notes: finalNotes
       });
       alert(`${theme.appName}`);
@@ -229,7 +229,7 @@ export default function ClientBookingScreen({ navigation }: any) {
       alert('Selecciona fecha y hora.');
       return;
     }
-    if (window.confirm('Para confirmar la cita, debes abonar una fianza de reserva (10â‚¬) que se descontarÃ¡ del precio final. SerÃ¡s redirigido a la pasarela de pago seguro. Â¿Deseas continuar?')) {
+    if (window.confirm('Para confirmar la cita, debes abonar una fianza de reserva (10€) que se descontará del precio final. Serás redirigido a la pasarela de pago seguro. ¿Deseas continuar?')) {
       saveBooking();
     }
   };
@@ -250,9 +250,9 @@ export default function ClientBookingScreen({ navigation }: any) {
         <View style={styles.card}>
           <Text style={styles.stepTitle}>1. Tus Datos</Text>
           <TextInput style={styles.input} placeholder="Tu Nombre Completo" value={clientName} onChangeText={setClientName} />
-          <TextInput style={styles.input} placeholder="Tu TelÃ©fono (ej. 600123456)" keyboardType="phone-pad" value={clientPhone} onChangeText={setClientPhone} />
+          <TextInput style={styles.input} placeholder="Tu Teléfono (ej. 600123456)" keyboardType="phone-pad" value={clientPhone} onChangeText={setClientPhone} />
           <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}>
-            <Text style={styles.btnText}>Siguiente â€º</Text>
+            <Text style={styles.btnText}>Siguiente ›</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -265,13 +265,13 @@ export default function ClientBookingScreen({ navigation }: any) {
             {services.map(s => (
               <TouchableOpacity key={s.id} style={[styles.optionCard, selectedService?.id === s.id && styles.optionSelected]} onPress={() => setSelectedService(s)}>
                 <Text style={[styles.optionTitle, selectedService?.id === s.id && styles.textSelected]}>{s.name}</Text>
-                <Text style={styles.optionSub}>â± {s.duration} min | {s.price ? `ðŸ’¶ ${s.price}â‚¬` : ''}</Text>
+                <Text style={styles.optionSub}>⏱ {s.duration} min | {s.price ? `💶 ${s.price}€` : ''}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={styles.navRow}>
-            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(1)}><Text style={styles.btnBackText}>â€¹ Volver</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente â€º</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(1)}><Text style={styles.btnBackText}>‹ Volver</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente ›</Text></TouchableOpacity>
           </View>
         </View>
       )}
@@ -279,22 +279,22 @@ export default function ClientBookingScreen({ navigation }: any) {
       {/* STEP 3 */}
       {step === 3 && (
         <View style={styles.card}>
-          <Text style={styles.stepTitle}>3. Â¿Con quiÃ©n quieres tu cita?</Text>
+          <Text style={styles.stepTitle}>3. ¿Con quién quieres tu cita?</Text>
           <View style={styles.grid}>
             <TouchableOpacity style={[styles.optionCard, selectedTeam?.id === 'any' && styles.optionSelected]} onPress={() => setSelectedTeam({id: 'any', name: 'Cualquiera'})}>
-              <Text style={[styles.optionTitle, selectedTeam?.id === 'any' && styles.textSelected]}>ðŸ’‡â€â™€ï¸ Sin preferencia (Cualquiera)</Text>
+              <Text style={[styles.optionTitle, selectedTeam?.id === 'any' && styles.textSelected]}>💇‍♀️ Sin preferencia (Cualquiera)</Text>
             </TouchableOpacity>
             {teams
               .filter(t => !selectedService?.allowedTeams || selectedService.allowedTeams.includes(t.name))
               .map(t => (
               <TouchableOpacity key={t.id} style={[styles.optionCard, selectedTeam?.id === t.id && styles.optionSelected]} onPress={() => setSelectedTeam(t)}>
-                <Text style={[styles.optionTitle, selectedTeam?.id === t.id && styles.textSelected]}>ðŸ’‡â€â™€ï¸ {t.name}</Text>
+                <Text style={[styles.optionTitle, selectedTeam?.id === t.id && styles.textSelected]}>💇‍♀️ {t.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={styles.navRow}>
-            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(2)}><Text style={styles.btnBackText}>â€¹ Volver</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente â€º</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(2)}><Text style={styles.btnBackText}>‹ Volver</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente ›</Text></TouchableOpacity>
           </View>
         </View>
       )}
@@ -322,14 +322,14 @@ export default function ClientBookingScreen({ navigation }: any) {
                 ))}
               </View>
             ) : (
-              <Text style={styles.noSlotsText}>No hay huecos disponibles este dÃ­a para la empleada seleccionada.</Text>
+              <Text style={styles.noSlotsText}>No hay huecos disponibles este día para la empleada seleccionada.</Text>
             )
           ) : (
-            <Text style={styles.noSlotsText}>Selecciona un dÃ­a en el calendario.</Text>
+            <Text style={styles.noSlotsText}>Selecciona un día en el calendario.</Text>
           )}
 
           <View style={styles.navRow}>
-            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(3)}><Text style={styles.btnBackText}>â€¹ Volver</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(3)}><Text style={styles.btnBackText}>‹ Volver</Text></TouchableOpacity>
             <TouchableOpacity style={styles.btnAction} onPress={handleBook}><Text style={styles.btnText}>Confirmar y Pagar Fianza</Text></TouchableOpacity>
           </View>
         </View>

@@ -75,7 +75,7 @@ export default function CalendarScreen({ route, navigation }: any) {
   const [uploadingPhotos, setUploadingPhotos] = useState<Record<string, boolean>>({});
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [finalPriceInput, setFinalPriceInput] = useState<string>('');
-  // Modal de gestiÃ³n de equipos
+  // Modal de gestión de equipos
   const [showTeamsModal, setShowTeamsModal] = useState(false);
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const [formTeamName, setFormTeamName] = useState('');
@@ -113,15 +113,15 @@ export default function CalendarScreen({ route, navigation }: any) {
           await addDoc(collection(db, 'teams'), { tenantId, tenantId,
             name: 'Equipo 1',
             members: 'Carlos y Marcos',
-            vehicle: 'Furgoneta 1 (CitroÃ«n Berlingo)',
-            tools: 'InyecciÃ³n-ExtracciÃ³n KÃ¤rcher, Cepillos, Vaporizador',
+            vehicle: 'Furgoneta 1 (Citroën Berlingo)',
+            tools: 'Inyección-Extracción Kärcher, Cepillos, Vaporizador',
             createdAt: new Date()
           });
           await addDoc(collection(db, 'teams'), { tenantId, tenantId,
             name: 'Equipo 2',
             members: 'Andrea y Javier',
             vehicle: 'Furgoneta 2 (Renault Kangoo)',
-            tools: 'MÃ¡quina TapicerÃ­as Pro, Hidrolimpiadora',
+            tools: 'Máquina Tapicerías Pro, Hidrolimpiadora',
             createdAt: new Date()
           });
         } catch (e) {
@@ -170,9 +170,9 @@ export default function CalendarScreen({ route, navigation }: any) {
           const estimatedTravelTime = 30; 
 
           if (freeTimeMins < 0) {
-            newConflicts[next.id] = `âš ï¸ Solapamiento: La cita anterior acaba a las ${Math.floor(currentEndTimeMins / 60)}:${(currentEndTimeMins % 60).toString().padStart(2, '0')}.`;
+            newConflicts[next.id] = `⚠️ Solapamiento: La cita anterior acaba a las ${Math.floor(currentEndTimeMins / 60)}:${(currentEndTimeMins % 60).toString().padStart(2, '0')}.`;
           } else if (freeTimeMins < estimatedTravelTime) {
-            newConflicts[next.id] = `ðŸš— Â¡Ojo! Solo hay ${freeTimeMins} min para llegar.`;
+            newConflicts[next.id] = `🚗 ¡Ojo! Solo hay ${freeTimeMins} min para llegar.`;
           }
         }
       });
@@ -202,7 +202,7 @@ export default function CalendarScreen({ route, navigation }: any) {
     return () => unsub();
   }, [currentMonth]);
 
-  // 3. Chequear recordatorios pendientes para maÃ±ana
+  // 3. Chequear recordatorios pendientes para mañana
   useEffect(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -224,12 +224,12 @@ export default function CalendarScreen({ route, navigation }: any) {
   }, []);
 
   const sendWhatsAppReminder = async (item: Appointment) => {
-    if (!item.phone) return alert('El cliente no tiene telÃ©fono guardado.');
+    if (!item.phone) return alert('El cliente no tiene teléfono guardado.');
     
     const isTomorrow = item.date === tomorrowDateStr;
     const isToday = item.date === new Date().toISOString().split('T')[0];
     
-    let dateText = isTomorrow ? 'maÃ±ana' : (isToday ? 'hoy' : `el dÃ­a ${item.date}`);
+    let dateText = isTomorrow ? 'mañana' : (isToday ? 'hoy' : `el día ${item.date}`);
     
     const message = `Hola ${item.client}, te recordamos que ${dateText} tienes agendada la cita con ${theme.appName} a las ${item.time}.`;
     
@@ -253,9 +253,9 @@ export default function CalendarScreen({ route, navigation }: any) {
   };
 
   const requestGoogleReview = async (item: Appointment) => {
-    if (!item.phone) return alert('El cliente no tiene telÃ©fono guardado.');
+    if (!item.phone) return alert('El cliente no tiene teléfono guardado.');
     
-    const message = `Â¡Hola ${item.client}! ðŸ‘‹\nEsperamos que hayas quedado encantado con el servicio de ${item.serviceName.toLowerCase()}. âœ¨\n\nPara nosotros tu opiniÃ³n es fundamental. Si te ha gustado el resultado, Â¿nos regalarÃ­as 1 minuto para dejarnos 5 estrellitas en Google? Nos ayuda muchÃ­simo a seguir creciendo. ðŸ™\n\nâ­ Puedes hacerlo aquÃ­: https://share.google/8mzwiMXmLf2HoZoOS\n\nÂ¡Mil gracias por confiar en ${theme.appName}!`;
+    const message = `¡Hola ${item.client}! 👋\nEsperamos que hayas quedado encantado con el servicio de ${item.serviceName.toLowerCase()}. ✨\n\nPara nosotros tu opinión es fundamental. Si te ha gustado el resultado, ¿nos regalarías 1 minuto para dejarnos 5 estrellitas en Google? Nos ayuda muchísimo a seguir creciendo. 🙏\n\n⭐ Puedes hacerlo aquí: https://share.google/8mzwiMXmLf2HoZoOS\n\n¡Mil gracias por confiar en ${theme.appName}!`;
     
     let phoneNum = item.phone.replace(/\s+/g, '');
     if (phoneNum.length === 9 && (phoneNum.startsWith('6') || phoneNum.startsWith('7') || phoneNum.startsWith('8') || phoneNum.startsWith('9'))) {
@@ -272,14 +272,14 @@ export default function CalendarScreen({ route, navigation }: any) {
       });
       Linking.openURL(url);
     } catch(e) {
-      alert('Error al actualizar el estado de la reseÃ±a.');
+      alert('Error al actualizar el estado de la reseña.');
     }
   };
 
 
 
   const analyzeRoutes = () => {
-    // Filtrar citas de hoy que no estÃ©n completadas
+    // Filtrar citas de hoy que no estén completadas
     const todaysApps = appointments.filter(a => 
       a.date === selectedDate && a.status !== 'completed'
     );
@@ -314,7 +314,7 @@ export default function CalendarScreen({ route, navigation }: any) {
         });
         
         if (!hasOverlap) {
-          // Para esta demostraciÃ³n, si podemos reasignarla para balancear carga o evitar cruces geogrÃ¡ficos:
+          // Para esta demostración, si podemos reasignarla para balancear carga o evitar cruces geográficos:
           const savings = Math.floor(Math.random() * 20) + 15; // Mock de ahorro 15-35 min
           suggestions.push({
             appId: sourceApp.id,
@@ -342,9 +342,9 @@ export default function CalendarScreen({ route, navigation }: any) {
         team: suggestion.toTeam
       });
       setShowOptimizerModal(false);
-      alert('Ruta optimizada y cita reasignada con Ã©xito.');
+      alert('Ruta optimizada y cita reasignada con éxito.');
     } catch (e) {
-      alert('Error al aplicar la optimizaciÃ³n.');
+      alert('Error al aplicar la optimización.');
     }
   };
 
@@ -433,7 +433,7 @@ export default function CalendarScreen({ route, navigation }: any) {
       alert('Debes mantener al menos 1 equipo activo.');
       return;
     }
-    if (window.confirm(`Â¿Seguro que deseas eliminar el "${name}"?`)) {
+    if (window.confirm(`¿Seguro que deseas eliminar el "${name}"?`)) {
       try {
         await deleteDoc(doc(db, 'teams', id));
         if (editingTeamId === id) cancelEditTeam();
@@ -451,7 +451,7 @@ export default function CalendarScreen({ route, navigation }: any) {
   };
 
   const openMaps = (address: string | undefined) => {
-    if (!address) return alert('Esta cita no tiene direcciÃ³n.');
+    if (!address) return alert('Esta cita no tiene dirección.');
     Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`);
   };
 
@@ -461,7 +461,7 @@ export default function CalendarScreen({ route, navigation }: any) {
   };
 
   const deleteAppointment = async (id: string) => {
-    if (window.confirm('Â¿EstÃ¡s completamente seguro de que deseas eliminar esta cita?')) {
+    if (window.confirm('¿Estás completamente seguro de que deseas eliminar esta cita?')) {
       try {
         await deleteDoc(doc(db, 'appointments', id));
         setSelectedAppointment(null);
@@ -472,7 +472,7 @@ export default function CalendarScreen({ route, navigation }: any) {
   };
 
   const cancelAppointment = async (id: string) => {
-    if (window.confirm('Â¿Deseas marcar esta cita como CANCELADA? (SeguirÃ¡ en el calendario pero en rojo)')) {
+    if (window.confirm('¿Deseas marcar esta cita como CANCELADA? (Seguirá en el calendario pero en rojo)')) {
       try {
         const cancelledAt = new Date().toISOString();
         await updateDoc(doc(db, 'appointments', id), {
@@ -505,7 +505,7 @@ export default function CalendarScreen({ route, navigation }: any) {
       if (selectedAppointment && selectedAppointment.id === item.id) {
          setSelectedAppointment({ ...selectedAppointment, status: 'completed', completedAt: nowStr, paymentStatus: payStatus, paymentMethod: payMethod, finalPrice: finalPriceInput });
       }
-      alert(payStatus === 'paid' ? 'Â¡Servicio cobrado correctamente!' : 'Servicio guardado como Pago Pendiente.');
+      alert(payStatus === 'paid' ? '¡Servicio cobrado correctamente!' : 'Servicio guardado como Pago Pendiente.');
     } catch (e) {
       alert('Error al completar el servicio.');
     }
@@ -517,7 +517,7 @@ export default function CalendarScreen({ route, navigation }: any) {
       <View style={styles.headerRow}>
         <View style={styles.dateSelector}>
           <TouchableOpacity onPress={() => setShowCalendar(true)}>
-            <Text style={styles.dateText}>ðŸ“… {selectedDate}</Text>
+            <Text style={styles.dateText}>📅 {selectedDate}</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.headerControls}>
@@ -527,42 +527,42 @@ export default function CalendarScreen({ route, navigation }: any) {
               style={[styles.viewToggleBtn, calendarView === 'day' && styles.viewToggleBtnActive]}
               onPress={() => setCalendarView('day')}
             >
-              <Text style={[styles.viewToggleText, calendarView === 'day' && styles.viewToggleTextActive]}>ðŸ“‹ DÃ­a</Text>
+              <Text style={[styles.viewToggleText, calendarView === 'day' && styles.viewToggleTextActive]}>📋 Día</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.viewToggleBtn, calendarView === 'month' && styles.viewToggleBtnActive]}
               onPress={() => setCalendarView('month')}
             >
-              <Text style={[styles.viewToggleText, calendarView === 'month' && styles.viewToggleTextActive]}>ðŸ—“ï¸ Mes</Text>
+              <Text style={[styles.viewToggleText, calendarView === 'month' && styles.viewToggleTextActive]}>🗓️ Mes</Text>
             </TouchableOpacity>
           </View>
 
           {isAdmin && (
             <TouchableOpacity style={styles.optimizerBtn} onPress={analyzeRoutes}>
-              <Text style={styles.optimizerBtnText}>ðŸª„ Optimizar</Text>
+              <Text style={styles.optimizerBtnText}>🪄 Optimizar</Text>
             </TouchableOpacity>
           )}
           {isAdmin ? (
             <TouchableOpacity style={styles.manageTeamsBtn} onPress={() => setShowTeamsModal(true)}>
-              <Text style={styles.manageTeamsText}>ðŸ‘¥ Equipos ({teams.length})</Text>
+              <Text style={styles.manageTeamsText}>👥 Equipos ({teams.length})</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={[styles.manageTeamsBtn, {backgroundColor: '#f5f7fa', borderColor: '#e0e8f0'}]} onPress={() => {
-              const newPin = window.prompt("Introduce tu nuevo PIN personal (4 dÃ­gitos):");
+              const newPin = window.prompt("Introduce tu nuevo PIN personal (4 dígitos):");
               if (newPin && newPin.length === 4) {
                  const t = teams.find(t => t.name === teamName);
                  if (t) {
                    require('firebase/firestore').updateDoc(require('firebase/firestore').doc(db, 'teams', t.id), { pin: newPin })
-                     .then(() => alert('Tu PIN ha sido actualizado con Ã©xito.'))
+                     .then(() => alert('Tu PIN ha sido actualizado con éxito.'))
                      .catch(() => alert('Hubo un error al actualizar tu PIN.'));
                  } else {
-                   alert('No se encontrÃ³ tu equipo.');
+                   alert('No se encontró tu equipo.');
                  }
               } else if (newPin) {
-                 alert('El PIN debe tener exactamente 4 dÃ­gitos numÃ©ricos.');
+                 alert('El PIN debe tener exactamente 4 dígitos numéricos.');
               }
             }}>
-              <Text style={[styles.manageTeamsText, {color: '#555'}]}>ðŸ” Mi PIN</Text>
+              <Text style={[styles.manageTeamsText, {color: '#555'}]}>🔐 Mi PIN</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.newApptBtn} onPress={() => navigation.navigate('Appointments')}>
@@ -600,25 +600,25 @@ export default function CalendarScreen({ route, navigation }: any) {
 
         return (
           <ScrollView style={{ flex: 1, padding: 12 }}>
-            {/* NavegaciÃ³n de mes */}
+            {/* Navegación de mes */}
             <View style={styles.monthNav}>
               <TouchableOpacity onPress={goToPrevMonth} style={styles.monthNavBtn}>
-                <Text style={styles.monthNavArrow}>â€¹</Text>
+                <Text style={styles.monthNavArrow}>‹</Text>
               </TouchableOpacity>
               <Text style={styles.monthNavTitle}>{MONTH_NAMES[currentMonth.month]} {currentMonth.year}</Text>
               <TouchableOpacity onPress={goToNextMonth} style={styles.monthNavBtn}>
-                <Text style={styles.monthNavArrow}>â€º</Text>
+                <Text style={styles.monthNavArrow}>›</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Cabecera dÃ­as semana */}
+            {/* Cabecera días semana */}
             <View style={styles.monthWeekHeader}>
               {DAYS.map(d => (
                 <Text key={d} style={styles.monthWeekDay}>{d}</Text>
               ))}
             </View>
 
-            {/* Grid de dÃ­as */}
+            {/* Grid de días */}
             <View style={styles.monthGrid}>
               {cells.map((day, idx) => {
                 if (!day) return <View key={`empty-${idx}`} style={styles.monthCell} />;
@@ -664,7 +664,7 @@ export default function CalendarScreen({ route, navigation }: any) {
 
             {/* Resumen del mes */}
             <View style={styles.monthSummary}>
-              <Text style={styles.monthSummaryTitle}>ðŸ“Š Resumen de {MONTH_NAMES[currentMonth.month]}</Text>
+              <Text style={styles.monthSummaryTitle}>📊 Resumen de {MONTH_NAMES[currentMonth.month]}</Text>
               <View style={styles.monthSummaryRow}>
                 <View style={styles.monthSummaryKpi}>
                   <Text style={styles.monthSummaryNum}>{monthAppointments.length}</Text>
@@ -694,7 +694,7 @@ export default function CalendarScreen({ route, navigation }: any) {
           }}
         >
           <Text style={styles.reminderAlertText}>
-            ðŸ”” Tienes {pendingReminders} recordatorio(s) pendiente(s) para maÃ±ana. Â¡Toca aquÃ­ para verlos!
+            🔔 Tienes {pendingReminders} recordatorio(s) pendiente(s) para mañana. ¡Toca aquí para verlos!
           </Text>
         </TouchableOpacity>
       )}
@@ -712,12 +712,12 @@ export default function CalendarScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* ===== VISTA DE CUADRÃCULA HORARIA (09:00 - 20:30) ===== */}
+      {/* ===== VISTA DE CUADRÍCULA HORARIA (09:00 - 20:30) ===== */}
       {calendarView === 'day' && (() => {
         const START_HOUR = 9;      // 09:00
         const END_HOUR = 20.5;     // 20:30
         const TOTAL_MINS = (END_HOUR - START_HOUR) * 60; // 690 min
-        const PX_PER_MIN = 2;      // 2px por minuto â†’ cada hora = 120px
+        const PX_PER_MIN = 2;      // 2px por minuto → cada hora = 120px
         const GRID_HEIGHT = TOTAL_MINS * PX_PER_MIN;
         const LABEL_WIDTH = 48;
         const COL_WIDTH = 180;
@@ -755,8 +755,8 @@ export default function CalendarScreen({ route, navigation }: any) {
                   const teamApps = appointments.filter(a => (a.team || teams[0]?.name) === t.name);
                   return (
                     <View key={t.id} style={{ width: COL_WIDTH, paddingHorizontal: 8, paddingVertical: 10, borderRightWidth: 1, borderRightColor: '#e0e8f0', backgroundColor: '#f8fafc' }}>
-                      <Text style={{ fontWeight: 'bold', color: theme.darkTextColor, fontSize: 13 }}>ðŸš {t.name}</Text>
-                      {t.members ? <Text style={{ fontSize: 11, color: '#888', marginTop: 2 }}>ðŸ‘¥ {t.members}</Text> : null}
+                      <Text style={{ fontWeight: 'bold', color: theme.darkTextColor, fontSize: 13 }}>🚐 {t.name}</Text>
+                      {t.members ? <Text style={{ fontSize: 11, color: '#888', marginTop: 2 }}>👥 {t.members}</Text> : null}
                       <Text style={{ fontSize: 11, color: theme.primaryColor, marginTop: 2, fontWeight: 'bold' }}>{teamApps.length} cita{teamApps.length !== 1 ? 's' : ''}</Text>
                     </View>
                   );
@@ -795,7 +795,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                     const teamApps = appointments.filter(a => (a.team || teams[0]?.name) === t.name);
                     return (
                       <View key={t.id} style={{ width: COL_WIDTH, height: GRID_HEIGHT, position: 'relative', borderRightWidth: 1, borderRightColor: '#e8eef4' }}>
-                        {/* LÃ­neas de hora */}
+                        {/* Líneas de hora */}
                         {HOUR_LINES.map(h => (
                           <View key={h} style={{ position: 'absolute', top: (h - START_HOUR) * 60 * PX_PER_MIN, left: 0, right: 0, height: 1, backgroundColor: h % 1 === 0 ? '#e8eef4' : '#f4f6f8' }} />
                         ))}
@@ -840,10 +840,10 @@ export default function CalendarScreen({ route, navigation }: any) {
                                 elevation: 2,
                               }}
                             >
-                              <Text style={{ fontSize: 11, fontWeight: 'bold', color: colors.text }} numberOfLines={1}>{item.time} Â· {item.serviceName}</Text>
-                              {height > 35 && <Text style={{ fontSize: 10, color: colors.text, opacity: 0.75, marginTop: 1 }} numberOfLines={1}>ðŸ‘¤ {item.client}</Text>}
-                              {height > 55 && item.address && <Text style={{ fontSize: 10, color: colors.text, opacity: 0.6, marginTop: 1 }} numberOfLines={1}>ðŸ“ {item.address}</Text>}
-                              {conflicts[item.id] && <Text style={{ fontSize: 10, color: '#d9534f' }}>âš ï¸</Text>}
+                              <Text style={{ fontSize: 11, fontWeight: 'bold', color: colors.text }} numberOfLines={1}>{item.time} · {item.serviceName}</Text>
+                              {height > 35 && <Text style={{ fontSize: 10, color: colors.text, opacity: 0.75, marginTop: 1 }} numberOfLines={1}>👤 {item.client}</Text>}
+                              {height > 55 && item.address && <Text style={{ fontSize: 10, color: colors.text, opacity: 0.6, marginTop: 1 }} numberOfLines={1}>📍 {item.address}</Text>}
+                              {conflicts[item.id] && <Text style={{ fontSize: 10, color: '#d9534f' }}>⚠️</Text>}
                             </TouchableOpacity>
                           );
                         })}
@@ -864,22 +864,22 @@ export default function CalendarScreen({ route, navigation }: any) {
             <View style={styles.detailsModalCard}>
               <View style={styles.detailsHeader}>
                 <View>
-                  <Text style={styles.detailsTime}>{selectedAppointment.time} (ðŸ•’ {selectedAppointment.duration}m)</Text>
+                  <Text style={styles.detailsTime}>{selectedAppointment.time} (🕒 {selectedAppointment.duration}m)</Text>
                   <Text style={styles.detailsService}>{selectedAppointment.serviceName}</Text>
                 </View>
                 <TouchableOpacity onPress={() => setSelectedAppointment(null)} style={styles.closeDetailsBtn}>
-                  <Text style={styles.closeDetailsBtnText}>âœ•</Text>
+                  <Text style={styles.closeDetailsBtnText}>✕</Text>
                 </TouchableOpacity>
               </View>
 
               <ScrollView style={{ maxHeight: 500 }} showsVerticalScrollIndicator={false}>
                 <View style={styles.clientRow}>
-                  <Text style={styles.client}>ðŸ‘¤ {selectedAppointment.client}</Text>
+                  <Text style={styles.client}>👤 {selectedAppointment.client}</Text>
                   <View style={{ flexDirection: 'row', gap: 6 }}>
                     {selectedAppointment.phone ? (
                       <>
                         <TouchableOpacity style={styles.phoneBadge} onPress={() => callClient(selectedAppointment.phone)}>
-                          <Text style={styles.phoneText}>ðŸ“ž Llamar</Text>
+                          <Text style={styles.phoneText}>📞 Llamar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
                           style={styles.chatBadge} 
@@ -890,7 +890,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                             Linking.openURL(`https://wa.me/${p}`);
                           }}
                         >
-                          <Text style={styles.chatText}>ðŸ’¬ WhatsApp</Text>
+                          <Text style={styles.chatText}>💬 WhatsApp</Text>
                         </TouchableOpacity>
                       </>
                     ) : null}
@@ -899,7 +899,7 @@ export default function CalendarScreen({ route, navigation }: any) {
 
                 {selectedAppointment.price ? (
                   <View style={styles.priceContainer}>
-                    <Text style={styles.priceText}>ðŸ’¶ Presupuesto: {selectedAppointment.price} â‚¬</Text>
+                    <Text style={styles.priceText}>💶 Presupuesto: {selectedAppointment.price} €</Text>
                   </View>
                 ) : null}
 
@@ -912,11 +912,11 @@ export default function CalendarScreen({ route, navigation }: any) {
                 {selectedAppointment.address ? (
                   <View style={{ marginTop: 10 }}>
                     <TouchableOpacity style={styles.mapButton} onPress={() => openMaps(selectedAppointment.address)}>
-                      <Text style={styles.mapButtonText}>ðŸ“ {selectedAppointment.address}</Text>
+                      <Text style={styles.mapButtonText}>📍 {selectedAppointment.address}</Text>
                     </TouchableOpacity>
                     {selectedAppointment.detailedInfo ? (
                       <View style={styles.detailedInfoBox}>
-                        <Text style={styles.detailedInfoText}>ðŸ¢ {selectedAppointment.detailedInfo}</Text>
+                        <Text style={styles.detailedInfoText}>🏢 {selectedAppointment.detailedInfo}</Text>
                       </View>
                     ) : null}
                   </View>
@@ -932,19 +932,19 @@ export default function CalendarScreen({ route, navigation }: any) {
                     onPress={() => sendWhatsAppReminder(selectedAppointment)}
                   >
                     <Text style={[styles.whatsappButtonText, selectedAppointment.reminderSent && styles.whatsappSentText]}>
-                      {selectedAppointment.reminderSent ? 'âœ… Recordatorio Enviado' : 'ðŸ“² Enviar WhatsApp'}
+                      {selectedAppointment.reminderSent ? '✅ Recordatorio Enviado' : '📲 Enviar WhatsApp'}
                     </Text>
                   </TouchableOpacity>
                 ) : null}
               </ScrollView>
 
-              {/* SECCIÃ“N DE COBRO Y FINALIZACIÃ“N */}
+              {/* SECCIÓN DE COBRO Y FINALIZACIÓN */}
               <View style={styles.paymentSection}>
                 {selectedAppointment.status === 'completed' ? (
                   <View style={styles.completedBadge}>
                     <Text style={styles.completedBadgeText}>
-                      âœ“ Finalizado ({selectedAppointment.paymentStatus === 'paid' ? `Cobrado en ${selectedAppointment.paymentMethod === 'bizum' ? 'Bizum' : 'Efectivo'}` : 'Pago Pendiente'})
-                      {selectedAppointment.finalPrice ? ` - ${selectedAppointment.finalPrice}â‚¬` : ''}
+                      ✓ Finalizado ({selectedAppointment.paymentStatus === 'paid' ? `Cobrado en ${selectedAppointment.paymentMethod === 'bizum' ? 'Bizum' : 'Efectivo'}` : 'Pago Pendiente'})
+                      {selectedAppointment.finalPrice ? ` - ${selectedAppointment.finalPrice}€` : ''}
                     </Text>
                   </View>
                 ) : (
@@ -959,13 +959,13 @@ export default function CalendarScreen({ route, navigation }: any) {
                     />
                     <View style={{flexDirection: 'row', gap: 6, marginTop: 5, flexWrap: 'wrap'}}>
                       <TouchableOpacity style={[styles.completeApptBtn, {backgroundColor: '#4a9b40'}]} onPress={() => completeService(selectedAppointment, 'paid', 'cash')}>
-                        <Text style={styles.completeApptBtnText}>ðŸ’µ Efectivo</Text>
+                        <Text style={styles.completeApptBtnText}>💵 Efectivo</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={[styles.completeApptBtn, {backgroundColor: '#00a4bd'}]} onPress={() => completeService(selectedAppointment, 'paid', 'bizum')}>
-                        <Text style={styles.completeApptBtnText}>ðŸ“± Bizum</Text>
+                        <Text style={styles.completeApptBtnText}>📱 Bizum</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={[styles.completeApptBtn, {backgroundColor: theme.secondaryColor}]} onPress={() => completeService(selectedAppointment, 'pending')}>
-                        <Text style={styles.completeApptBtnText}>â³ A deber</Text>
+                        <Text style={styles.completeApptBtnText}>⏳ A deber</Text>
                       </TouchableOpacity>
                     </View>
                   </>
@@ -980,7 +980,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                       onPress={() => requestGoogleReview(selectedAppointment)}
                     >
                       <Text style={[styles.reviewBtnText, selectedAppointment.reviewRequested && styles.reviewBtnTextSent]}>
-                        {selectedAppointment.reviewRequested ? 'âœ… ReseÃ±a Solicitada' : 'â­ Solicitar ReseÃ±a en Google'}
+                        {selectedAppointment.reviewRequested ? '✅ Reseña Solicitada' : '⭐ Solicitar Reseña en Google'}
                       </Text>
                     </TouchableOpacity>
                   ) : null}
@@ -989,10 +989,10 @@ export default function CalendarScreen({ route, navigation }: any) {
                 {isStrictAdmin && (
                   <View style={{flexDirection: 'row', gap: 6}}>
                     <TouchableOpacity style={[styles.deleteApptIconBtn, {backgroundColor: '#e74c3c', paddingHorizontal: 12, justifyContent: 'center'}]} onPress={() => cancelAppointment(selectedAppointment.id)}>
-                      <Text style={[styles.deleteApptIconBtnText, {fontSize: 12, color: '#fff'}]}>ðŸš« Cancelar</Text>
+                      <Text style={[styles.deleteApptIconBtnText, {fontSize: 12, color: '#fff'}]}>🚫 Cancelar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.deleteApptIconBtn} onPress={() => deleteAppointment(selectedAppointment.id)}>
-                      <Text style={styles.deleteApptIconBtnText}>ðŸ—‘ï¸</Text>
+                      <Text style={styles.deleteApptIconBtnText}>🗑️</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -1008,10 +1008,10 @@ export default function CalendarScreen({ route, navigation }: any) {
           <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}>
             <View style={styles.modalCard}>
               <Text style={styles.modalTitle}>
-                {editingTeamId ? 'âœï¸ Modificar Equipo' : 'âš™ï¸ ConfiguraciÃ³n de Equipos'}
+                {editingTeamId ? '✏️ Modificar Equipo' : '⚙️ Configuración de Equipos'}
               </Text>
               <Text style={styles.modalSubtitle}>
-                Asigna el nombre, miembros, vehÃ­culo y herramientas para cada equipo.
+                Asigna el nombre, miembros, vehículo y herramientas para cada equipo.
               </Text>
 
               <TextInput
@@ -1022,25 +1022,25 @@ export default function CalendarScreen({ route, navigation }: any) {
               />
               <TextInput
                 style={styles.modalInput}
-                placeholder="ðŸ‘¥ Miembros del equipo (ej. Carlos y Marta)"
+                placeholder="👥 Miembros del equipo (ej. Carlos y Marta)"
                 value={teamMembers}
                 onChangeText={setTeamMembers}
               />
               <TextInput
                 style={styles.modalInput}
-                placeholder="ðŸš— VehÃ­culo asignado (ej. CitroÃ«n Berlingo 1234-XYZ)"
+                placeholder="🚗 Vehículo asignado (ej. Citroën Berlingo 1234-XYZ)"
                 value={teamVehicle}
                 onChangeText={setTeamVehicle}
               />
               <TextInput
                 style={styles.modalInput}
-                placeholder="ðŸ› ï¸ Herramientas (ej. KÃ¤rcher Puzzi, Cepillos, Vaporizador)"
+                placeholder="🛠️ Herramientas (ej. Kärcher Puzzi, Cepillos, Vaporizador)"
                 value={teamTools}
                 onChangeText={setTeamTools}
               />
 
               <View style={{ marginBottom: 15 }}>
-                <Text style={{ fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 5 }}>Â¿QuÃ© servicios realiza esta empleada/equipo?</Text>
+                <Text style={{ fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 5 }}>¿Qué servicios realiza esta empleada/equipo?</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                   {services.map(s => {
                     const isSelected = teamServices.includes(s.id);
@@ -1057,7 +1057,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                         }}
                       >
                         <Text style={isSelected ? { color: theme.primaryColor, fontWeight: 'bold' } : { color: '#555' }}>
-                          {isSelected ? 'â˜‘ï¸' : 'â˜'} {s.name}
+                          {isSelected ? '☑️' : '☐'} {s.name}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -1073,7 +1073,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                 )}
                 <TouchableOpacity style={styles.saveTeamBtn} onPress={saveTeam}>
                   <Text style={styles.saveTeamBtnText}>
-                    {editingTeamId ? 'Guardar Cambios' : '+ AÃ±adir Equipo'}
+                    {editingTeamId ? 'Guardar Cambios' : '+ Añadir Equipo'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1083,18 +1083,18 @@ export default function CalendarScreen({ route, navigation }: any) {
                 {teams.map((t) => (
                   <View key={t.id} style={styles.teamCardItem}>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.teamItemTitle}>ðŸš {t.name}</Text>
-                      {t.members ? <Text style={styles.teamItemSub}>ðŸ‘¥ {t.members}</Text> : null}
-                      {t.vehicle ? <Text style={styles.teamItemSub}>ðŸš— {t.vehicle}</Text> : null}
-                      {t.tools ? <Text style={styles.teamItemSub}>ðŸ› ï¸ {t.tools}</Text> : null}
+                      <Text style={styles.teamItemTitle}>🚐 {t.name}</Text>
+                      {t.members ? <Text style={styles.teamItemSub}>👥 {t.members}</Text> : null}
+                      {t.vehicle ? <Text style={styles.teamItemSub}>🚗 {t.vehicle}</Text> : null}
+                      {t.tools ? <Text style={styles.teamItemSub}>🛠️ {t.tools}</Text> : null}
                     </View>
                     <View style={styles.teamItemActions}>
                       <TouchableOpacity style={styles.iconBtn} onPress={() => startEditTeam(t)}>
-                        <Text style={styles.iconBtnText}>âœï¸</Text>
+                        <Text style={styles.iconBtnText}>✏️</Text>
                       </TouchableOpacity>
                       {teams.length > 1 && (
                         <TouchableOpacity style={styles.iconBtn} onPress={() => removeTeam(t.id, t.name)}>
-                          <Text style={styles.iconBtnText}>ðŸ—‘ï¸</Text>
+                          <Text style={styles.iconBtnText}>🗑️</Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -1114,7 +1114,7 @@ export default function CalendarScreen({ route, navigation }: any) {
       <Modal visible={showOptimizerModal} animationType="fade" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { maxWidth: 400 }]}>
-            <Text style={styles.modalTitle}>ðŸª„ OptimizaciÃ³n Detectada</Text>
+            <Text style={styles.modalTitle}>🪄 Optimización Detectada</Text>
             {optimizationSuggestions.length > 0 ? (
               <View style={{ marginTop: 10 }}>
                 <Text style={{ fontSize: 15, color: '#333', lineHeight: 22, marginBottom: 15 }}>
@@ -1130,7 +1130,7 @@ export default function CalendarScreen({ route, navigation }: any) {
                       <Text style={{ fontSize: 12, color: '#d9534f', fontWeight: 'bold' }}>Quitar a</Text>
                       <Text style={{ fontSize: 13, fontWeight: 'bold' }}>{optimizationSuggestions[0].fromTeam}</Text>
                     </View>
-                    <Text>âž¡ï¸</Text>
+                    <Text>➡️</Text>
                     <View style={{ flex: 1, backgroundColor: '#FFF5F7', padding: 8, borderRadius: 6, alignItems: 'center' }}>
                       <Text style={{ fontSize: 12, color: theme.primaryColor, fontWeight: 'bold' }}>Pasar a</Text>
                       <Text style={{ fontSize: 13, fontWeight: 'bold' }}>{optimizationSuggestions[0].toTeam}</Text>
@@ -1355,7 +1355,7 @@ function getStyles(theme: any) { return StyleSheet.create({
   },
   whatsappSentText: { color: '#555', fontWeight: 'bold' },
   
-  // Estilos de FotografÃ­as
+  // Estilos de Fotografías
   photosSection: { marginTop: 12, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 10 },
   photosTitle: { fontSize: 13, fontWeight: 'bold', color: theme.darkTextColor, marginBottom: 8 },
   photosRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
@@ -1405,11 +1405,11 @@ function getStyles(theme: any) { return StyleSheet.create({
   deleteApptIconBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d9534f', width: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   deleteApptIconBtnText: { fontSize: 20 },
   
-  // Estilo para el botÃ³n de Factura PDF
+  // Estilo para el botón de Factura PDF
   invoiceBtn: { backgroundColor: '#fdf7e3', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginTop: 15, borderWidth: 1, borderColor: '#fde68a' },
   invoiceBtnText: { color: '#b45309', fontWeight: 'bold', fontSize: 14 },
 
-  // Toggle de vista DÃ­a / Mes
+  // Toggle de vista Día / Mes
   viewToggle: { flexDirection: 'row', backgroundColor: '#F9F1F3', borderRadius: 8, borderWidth: 1, borderColor: '#E8CED4', overflow: 'hidden' },
   viewToggleBtn: { paddingHorizontal: 12, paddingVertical: 7 },
   viewToggleBtnActive: { backgroundColor: theme.darkTextColor },

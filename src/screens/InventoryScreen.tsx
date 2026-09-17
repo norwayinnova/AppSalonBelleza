@@ -74,7 +74,7 @@ export default function InventoryScreen({ route }: any) {
 
   const saveItem = async () => {
     if (name.trim() === '') {
-      alert('Por favor, introduce el nombre del artÃ­culo.');
+      alert('Por favor, introduce el nombre del artículo.');
       return;
     }
     
@@ -104,12 +104,12 @@ export default function InventoryScreen({ route }: any) {
       }
       cancelEdit();
     } catch (error) {
-      alert('Error al guardar el artÃ­culo.');
+      alert('Error al guardar el artículo.');
     }
   };
 
   const deleteItem = async (id: string, itemName: string) => {
-    if (window.confirm(`Â¿Seguro que deseas eliminar "${itemName}" del inventario?`)) {
+    if (window.confirm(`¿Seguro que deseas eliminar "${itemName}" del inventario?`)) {
       try {
         await deleteDoc(doc(db, 'inventory', id));
       } catch (error) {
@@ -129,7 +129,7 @@ export default function InventoryScreen({ route }: any) {
   };
 
   const addHours = async (id: string) => {
-    const hours = window.prompt('Â¿CuÃ¡ntas horas de uso deseas aÃ±adir?');
+    const hours = window.prompt('¿Cuántas horas de uso deseas añadir?');
     if (hours && !isNaN(Number(hours))) {
       try {
         await updateDoc(doc(db, 'inventory', id), {
@@ -145,14 +145,14 @@ export default function InventoryScreen({ route }: any) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>ðŸ“¦ Control de Inventario</Text>
+      <Text style={styles.title}>📦 Control de Inventario</Text>
 
 
 
-      {/* Formulario de Alta / EdiciÃ³n (Solo Admin) */}
+      {/* Formulario de Alta / Edición (Solo Admin) */}
       {isAdmin && (
         <View style={styles.formCard}>
-          <Text style={styles.formTitle}>{editingId ? 'âœï¸ Editar ArtÃ­culo' : 'AÃ±adir Nuevo ArtÃ­culo'}</Text>
+          <Text style={styles.formTitle}>{editingId ? '✏️ Editar Artículo' : 'Añadir Nuevo Artículo'}</Text>
           <View style={styles.formRow}>
             <TextInput
               style={[styles.input, { flex: 1 }]}
@@ -180,7 +180,7 @@ export default function InventoryScreen({ route }: any) {
                 onPress={() => setSelectedTeam(tName)}
               >
                 <Text style={selectedTeam === tName ? styles.teamChipTextActive : styles.teamChipTextInactive}>
-                  {tName === 'Oficina/General' ? 'ðŸ¢ General' : `ðŸš ${tName}`}
+                  {tName === 'Oficina/General' ? '🏢 General' : `🚐 ${tName}`}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -212,7 +212,7 @@ export default function InventoryScreen({ route }: any) {
               <View style={[styles.itemCard, isAlert ? styles.itemCardAlert : null]}>
                 <View style={styles.itemInfo}>
                   <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemTeam}>{item.team === 'Oficina/General' ? 'ðŸ¢ General' : `ðŸš ${item.team}`}</Text>
+                  <Text style={styles.itemTeam}>{item.team === 'Oficina/General' ? '🏢 General' : `🚐 ${item.team}`}</Text>
                   
                   {item.category === 'maquinaria' ? (
                     <Text style={styles.itemStat}>Uso acumulado: <Text style={{fontWeight:'bold', color:theme.darkTextColor}}>{item.totalHours || 0} horas</Text></Text>
@@ -244,10 +244,10 @@ export default function InventoryScreen({ route }: any) {
                   {isAdmin && (
                     <>
                       <TouchableOpacity style={styles.iconBtn} onPress={() => handleEdit(item)}>
-                        <Text style={{fontSize: 16}}>âœï¸</Text>
+                        <Text style={{fontSize: 16}}>✏️</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={styles.iconBtn} onPress={() => deleteItem(item.id, item.name)}>
-                        <Text style={{fontSize: 16}}>ðŸ—‘ï¸</Text>
+                        <Text style={{fontSize: 16}}>🗑️</Text>
                       </TouchableOpacity>
                     </>
                   )}
@@ -255,7 +255,7 @@ export default function InventoryScreen({ route }: any) {
               </View>
             );
           }}
-          ListEmptyComponent={<Text style={styles.empty}>No hay artÃ­culos en esta categorÃ­a.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>No hay artículos en esta categoría.</Text>}
         />
       )}
     </View>

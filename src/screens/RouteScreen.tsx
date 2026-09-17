@@ -29,13 +29,13 @@ export default function RouteScreen() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [filterTeam, setFilterTeam] = useState('Equipo 1');
 
-  // Estado del cÃ¡lculo de ruta y kilÃ³metros
+  // Estado del cálculo de ruta y kilómetros
   const [totalKm, setTotalKm] = useState<number | null>(null);
   const [totalDrivingMinutes, setTotalDrivingMinutes] = useState<number | null>(null);
   const [segments, setSegments] = useState<RouteSegment[]>([]);
   const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 
-  // 1. Cargar equipos dinÃ¡micos
+  // 1. Cargar equipos dinámicos
   useEffect(() => {
     const qTeams = query(collection(db, 'teams'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId));
     const unsubscribeTeams = onSnapshot(qTeams, (snapshot) => {
@@ -50,7 +50,7 @@ export default function RouteScreen() {
     return () => unsubscribeTeams();
   }, []);
 
-  // 2. Cargar citas del dÃ­a seleccionado
+  // 2. Cargar citas del día seleccionado
   useEffect(() => {
     const q = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -62,12 +62,12 @@ export default function RouteScreen() {
     return () => unsubscribe();
   }, [selectedDate]);
 
-  // Filtrar citas segÃºn el equipo seleccionado
+  // Filtrar citas según el equipo seleccionado
   const teamAppointments = useMemo(() => {
     return appointments.filter(app => (app.team || 'Equipo 1') === filterTeam);
   }, [appointments, filterTeam]);
 
-  // 3. CÃLCULO DE KILÃ“METROS Y TIEMPOS REALES EN CARRETERA (OSRM + Photon)
+  // 3. CÁLCULO DE KILÓMETROS Y TIEMPOS REALES EN CARRETERA (OSRM + Photon)
   useEffect(() => {
     let isMounted = true;
 
@@ -81,7 +81,7 @@ export default function RouteScreen() {
 
       setIsCalculatingRoute(true);
       try {
-        // Geocodificar cada direcciÃ³n para obtener latitud y longitud
+        // Geocodificar cada dirección para obtener latitud y longitud
         const coords: { lat: number; lon: number }[] = [];
 
         for (const app of teamAppointments) {
@@ -154,7 +154,7 @@ export default function RouteScreen() {
   const openFullRoute = () => {
     const addresses = teamAppointments.map(app => app.address).filter(addr => addr && addr.trim() !== '');
     if (addresses.length === 0) {
-      alert(`No hay direcciones registradas para el ${filterTeam} este dÃ­a.`);
+      alert(`No hay direcciones registradas para el ${filterTeam} este día.`);
       return;
     }
     
@@ -170,7 +170,7 @@ export default function RouteScreen() {
 
   const teamOptions = teams.length > 0 ? teams.map(t => t.name) : ['Equipo 1', 'Equipo 2'];
 
-  // URL del mapa satÃ©lite/callejero interactivo
+  // URL del mapa satélite/callejero interactivo
   const mapEmbedUrl = useMemo(() => {
     const addresses = teamAppointments.map(app => app.address).filter(Boolean);
     if (addresses.length === 0) return null;
@@ -180,11 +180,11 @@ export default function RouteScreen() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.title}>ðŸ—ºï¸ Planificador y Rutas del DÃ­a</Text>
+      <Text style={styles.title}>🗺️ Planificador y Rutas del Día</Text>
 
       {/* Selector de Fecha */}
       <TouchableOpacity style={styles.dropdownBtn} onPress={() => setShowCalendar(!showCalendar)}>
-        <Text style={styles.dropdownText}>ðŸ“… Fecha: {selectedDate} {showCalendar ? 'â–²' : 'â–¼'}</Text>
+        <Text style={styles.dropdownText}>📅 Fecha: {selectedDate} {showCalendar ? '▲' : '▼'}</Text>
       </TouchableOpacity>
       
       {showCalendar && (
@@ -207,13 +207,13 @@ export default function RouteScreen() {
             onPress={() => setFilterTeam(t)}
           >
             <Text style={filterTeam === t ? styles.teamFilterTextSelected : styles.teamFilterTextUnselected}>
-              ðŸš {t}
+              🚐 {t}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* PANEL DE CONTROL DE KILÃ“METROS Y TIEMPO DE CARRETERA */}
+      {/* PANEL DE CONTROL DE KILÓMETROS Y TIEMPO DE CARRETERA */}
       <View style={styles.kpiCard}>
         <View style={styles.kpiRow}>
           <View style={[styles.kpiBox, { backgroundColor: '#FFF5F7', borderColor: '#b2dfb2' }]}>
@@ -237,7 +237,7 @@ export default function RouteScreen() {
                 {totalDrivingMinutes !== null ? `${totalDrivingMinutes} min` : '--'}
               </Text>
             )}
-            <Text style={styles.kpiSub}>ConducciÃ³n estimada</Text>
+            <Text style={styles.kpiSub}>Conducción estimada</Text>
           </View>
 
           <View style={[styles.kpiBox, { backgroundColor: '#fff8e7', borderColor: '#fae4b2' }]}>
@@ -252,7 +252,7 @@ export default function RouteScreen() {
       {teamAppointments.length > 0 && mapEmbedUrl && (
         <View style={styles.mapContainer}>
           <View style={styles.mapHeader}>
-            <Text style={styles.mapTitle}>ðŸ“ Mapa de Ubicaciones del {filterTeam}</Text>
+            <Text style={styles.mapTitle}>📍 Mapa de Ubicaciones del {filterTeam}</Text>
           </View>
           <iframe
             title="Mapa de Rutas"
@@ -264,7 +264,7 @@ export default function RouteScreen() {
       )}
 
       {/* LISTA SECUENCIAL DE PARADAS Y DESPLAZAMIENTOS */}
-      <Text style={styles.sectionLabel}>Itinerario del DÃ­a ({teamAppointments.length} paradas):</Text>
+      <Text style={styles.sectionLabel}>Itinerario del Día ({teamAppointments.length} paradas):</Text>
       {teamAppointments.length > 0 ? (
         <View style={{ marginBottom: 20 }}>
           {teamAppointments.map((item, index) => {
@@ -279,17 +279,17 @@ export default function RouteScreen() {
                   </View>
                   <View style={styles.routeInfo}>
                     <View style={styles.clientHeader}>
-                      <Text style={styles.time}>{item.time} Â· {item.client}</Text>
+                      <Text style={styles.time}>{item.time} · {item.client}</Text>
                       {item.phone ? (
                         <TouchableOpacity style={styles.phoneBadge} onPress={() => callClient(item.phone)}>
-                          <Text style={styles.phoneText}>ðŸ“ž {item.phone}</Text>
+                          <Text style={styles.phoneText}>📞 {item.phone}</Text>
                         </TouchableOpacity>
                       ) : null}
                     </View>
-                    <Text style={styles.serviceName}>âœ¨ {item.serviceName} (â± {item.duration}m)</Text>
-                    <Text style={styles.address}>ðŸ“ {item.address || 'Sin direcciÃ³n'}</Text>
+                    <Text style={styles.serviceName}>✨ {item.serviceName} (⏱ {item.duration}m)</Text>
+                    <Text style={styles.address}>📍 {item.address || 'Sin dirección'}</Text>
                     {item.detailedInfo ? (
-                      <Text style={styles.detailedInfo}>ðŸ¢ {item.detailedInfo}</Text>
+                      <Text style={styles.detailedInfo}>🏢 {item.detailedInfo}</Text>
                     ) : null}
                   </View>
                 </View>
@@ -297,7 +297,7 @@ export default function RouteScreen() {
                 {/* Conector de desplazamiento entre paradas */}
                 {index < teamAppointments.length - 1 && (
                   <View style={styles.travelConnector}>
-                    <Text style={styles.travelIcon}>ðŸš— â¬‡ï¸</Text>
+                    <Text style={styles.travelIcon}>🚗 ⬇️</Text>
                     <Text style={styles.travelText}>
                       Desplazamiento a parada #{index + 2}:{' '}
                       <Text style={{ fontWeight: 'bold', color: theme.darkTextColor }}>
@@ -310,10 +310,10 @@ export default function RouteScreen() {
             );
           })}
 
-          {/* BotÃ³n de apertura directa en Google Maps */}
+          {/* Botón de apertura directa en Google Maps */}
           <TouchableOpacity style={styles.mapButton} onPress={openFullRoute}>
             <Text style={styles.mapButtonText}>
-              ðŸ—ºï¸ Abrir NavegaciÃ³n Turn-by-Turn en Google Maps
+              🗺️ Abrir Navegación Turn-by-Turn en Google Maps
             </Text>
           </TouchableOpacity>
         </View>

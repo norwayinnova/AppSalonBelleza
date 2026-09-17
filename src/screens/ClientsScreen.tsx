@@ -91,7 +91,7 @@ export default function ClientsScreen() {
   };
 
   const deleteClient = async (id: string, name: string) => {
-    if (window.confirm(`Â¿EstÃ¡s seguro de que deseas eliminar al cliente "${name}"? Esto no eliminarÃ¡ sus citas pasadas.`)) {
+    if (window.confirm(`¿Estás seguro de que deseas eliminar al cliente "${name}"? Esto no eliminará sus citas pasadas.`)) {
       try {
         await deleteDoc(doc(db, 'clients', id));
       } catch (error) {
@@ -133,7 +133,7 @@ export default function ClientsScreen() {
 
       <TextInput
         style={styles.searchInput}
-        placeholder="ðŸ” Buscar por nombre o telÃ©fono..."
+        placeholder="🔍 Buscar por nombre o teléfono..."
         value={searchTerm}
         onChangeText={setSearchTerm}
       />
@@ -173,28 +173,28 @@ export default function ClientsScreen() {
                     <Text style={styles.clientName}>{item.name}</Text>
                     {item.phone ? (
                       <TouchableOpacity onPress={() => callClient(item.phone)}>
-                        <Text style={styles.clientPhone}>ðŸ“ž {item.phone}</Text>
+                        <Text style={styles.clientPhone}>📞 {item.phone}</Text>
                       </TouchableOpacity>
                     ) : null}
                     
                     <View style={styles.badgesRow}>
-                      <Text style={styles.badgeText}>âœ… {completedCount} citas</Text>
-                      {cancelledCount > 0 && <Text style={[styles.badgeText, { color: '#e74c3c' }]}>âŒ {cancelledCount} canceladas</Text>}
-                      <Text style={[styles.badgeText, { color: '#2ecc71', fontWeight: 'bold' }]}>ðŸ’° {totalSpent.toFixed(0)}â‚¬ totales</Text>
+                      <Text style={styles.badgeText}>✅ {completedCount} citas</Text>
+                      {cancelledCount > 0 && <Text style={[styles.badgeText, { color: '#e74c3c' }]}>❌ {cancelledCount} canceladas</Text>}
+                      <Text style={[styles.badgeText, { color: '#2ecc71', fontWeight: 'bold' }]}>💰 {totalSpent.toFixed(0)}€ totales</Text>
                     </View>
                     
-                    {isVIP && <Text style={styles.vipTag}>ðŸ† Clienta VIP Avalon</Text>}
-                    {isProblematic && <Text style={styles.problemTag}>âš ï¸ ATENCIÃ“N: Pedir Fianza.</Text>}
+                    {isVIP && <Text style={styles.vipTag}>🏆 Clienta VIP Avalon</Text>}
+                    {isProblematic && <Text style={styles.problemTag}>⚠️ ATENCIÓN: Pedir Fianza.</Text>}
                   </View>
 
                   <TouchableOpacity onPress={() => deleteClient(item.id, item.name)} style={styles.deleteBtn}>
-                    <Text style={styles.deleteBtnText}>ðŸ—‘ï¸</Text>
+                    <Text style={styles.deleteBtnText}>🗑️</Text>
                   </TouchableOpacity>
                 </View>
 
                 {isExpanded && (
                   <View style={styles.historyContainer}>
-                    <Text style={styles.historyTitle}>ðŸ“‹ Ãšltimos Servicios:</Text>
+                    <Text style={styles.historyTitle}>📋 Últimos Servicios:</Text>
                     {clientHistory.length === 0 ? (
                       <Text style={styles.noHistory}>No hay servicios registrados.</Text>
                     ) : (
@@ -207,7 +207,7 @@ export default function ClientsScreen() {
                             app.status === 'cancelled' ? {color: '#e74c3c'} : 
                             {color: theme.secondaryColor}
                           ]}>
-                            {app.status === 'completed' ? `Completado (${app.finalPrice || app.price}â‚¬)` : 
+                            {app.status === 'completed' ? `Completado (${app.finalPrice || app.price}€)` : 
                              app.status === 'cancelled' ? 'Cancelado' : 'Pendiente'}
                           </Text>
                         </View>
@@ -220,7 +220,7 @@ export default function ClientsScreen() {
           }}
           ListEmptyComponent={
             <Text style={styles.empty}>
-              {searchTerm ? 'No se encontraron clientes.' : 'AÃºn no hay clientes registrados.'}
+              {searchTerm ? 'No se encontraron clientes.' : 'Aún no hay clientes registrados.'}
             </Text>
           }
         />
