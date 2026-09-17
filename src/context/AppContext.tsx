@@ -1,5 +1,6 @@
-import React, { createContext, useState, useContext, ReactNode, useRef, useEffect } from 'react';
+﻿import React, { createContext, useState, useContext, ReactNode, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
+import { themes, AppTheme } from '../config/theme';
 
 type Role = 'admin' | 'management' | 'team' | 'cliente' | null;
 type ToastType = 'success' | 'error' | 'info';
@@ -7,6 +8,9 @@ type ToastType = 'success' | 'error' | 'info';
 interface AppContextType {
   role: Role;
   teamName: string | null;
+  tenantId: string;
+  theme: AppTheme;
+  setTenantId: (id: string) => void;
   loginAsAdmin: () => void;
   loginAsManagement: () => void;
   loginAsTeam: (teamName: string) => void;
@@ -20,12 +24,14 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<Role>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
+  const [tenantId, setTenantIdState] = useState<string>('appbeauty'); // Default tenant for dev
+  const theme = themes[tenantId] || themes['appbeauty'];
   
-  // Toast State
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<ToastType>('success');
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
+  const setTenantId = (id: string) => setTenantIdState(id);
   const loginAsAdmin = () => { setRole('admin'); setTeamName(null); };
   const loginAsManagement = () => { setRole('management'); setTeamName(null); };
   const loginAsTeam = (name: string) => { setRole('team'); setTeamName(name); };
@@ -51,7 +57,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AppContext.Provider value={{ role, teamName, loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, logout, showToast }}>
+    <AppContext.Provider value={{ role, teamName, tenantId, theme, setTenantId, loginAsAdmin, loginAsManagement, loginAsTeam, loginAsClient, logout, showToast }}>
       {children}
       {toastMsg ? (
         <Animated.View style={[

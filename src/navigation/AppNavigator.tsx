@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { Image, View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform } from 'react-native';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
 import { useAppContext } from '../context/AppContext';
@@ -8,7 +8,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import CalendarScreen from '../screens/CalendarScreen';
 import AppointmentsScreen from '../screens/AppointmentsScreen';
 import ServicesScreen from '../screens/ServicesScreen';
-
 import ClientsScreen from '../screens/ClientsScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import ExpensesScreen from '../screens/ExpensesScreen';
@@ -21,19 +20,20 @@ const Tab = createMaterialTopTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function LogoTitle() {
+  const { theme } = useAppContext();
   return (
     <View style={styles.logoContainer}>
       <Image
         style={styles.logoImage}
-        source={require('../../assets/logo.jpg')}
+        source={theme.logoPath}
         resizeMode="contain"
       />
     </View>
   );
 }
 
-// Barra de pestañas adaptable a Móvil y Ordenador (con deslizamiento táctil horizontal)
 function CustomTopTabBar({ state, descriptors, navigation }: any) {
+  const { theme } = useAppContext();
   return (
     <View style={styles.tabBarWrapper}>
       <ScrollView
@@ -70,13 +70,13 @@ function CustomTopTabBar({ state, descriptors, navigation }: any) {
               onPress={onPress}
               style={[
                 styles.tabButton,
-                isFocused ? styles.tabButtonActive : styles.tabButtonInactive
+                isFocused ? { borderBottomColor: theme.primaryColor } : styles.tabButtonInactive
               ]}
             >
               <Text
                 style={[
                   styles.tabText,
-                  isFocused ? styles.tabTextActive : styles.tabTextInactive
+                  isFocused ? { color: theme.primaryColor, fontWeight: 'bold' } : styles.tabTextInactive
                 ]}
               >
                 {label}
@@ -89,35 +89,29 @@ function CustomTopTabBar({ state, descriptors, navigation }: any) {
   );
 }
 
-// ... (keep CustomTopTabBar and styles intact)
-
 function TopTabs() {
   const { role, teamName } = useAppContext();
   const isAdmin = role === 'admin';
   const isManagement = role === 'management';
-  const showAdminOnly = isAdmin; // Solo admin ve Dashboard
+  const showAdminOnly = isAdmin;
 
   return (
     <Tab.Navigator tabBar={(props) => <CustomTopTabBar {...props} />} screenOptions={{ swipeEnabled: false }}>
       {showAdminOnly && <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: '📊 Dashboard' }} />}
-      
       <Tab.Screen name="Calendar" component={CalendarScreen} options={{ tabBarLabel: '📅 Calendario' }} initialParams={{ role, teamName }} />
-
       <Tab.Screen name="Appointments" component={AppointmentsScreen} options={{ tabBarLabel: '➕ Nueva Cita' }} initialParams={{ role, teamName }} />
-      
       {isAdmin && <Tab.Screen name="Clients" component={ClientsScreen} options={{ tabBarLabel: '👥 Clientes' }} />}
       {(isAdmin || isManagement) && <Tab.Screen name="Services" component={ServicesScreen} options={{ tabBarLabel: '🧹 Servicios' }} />}
       {isAdmin && <Tab.Screen name="Expenses" component={ExpensesScreen} options={{ tabBarLabel: '💸 Gastos' }} />}
       {showAdminOnly && <Tab.Screen name="Calculator" component={CalculatorScreen} options={{ tabBarLabel: '🧮 Calculadora' }} />}
       {showAdminOnly && <Tab.Screen name="Promotions" component={PromotionsScreen} options={{ tabBarLabel: '📢 Promociones' }} />}
-      
       <Tab.Screen name="Inventory" component={InventoryScreen} options={{ tabBarLabel: '📦 Inventario' }} initialParams={{ role, teamName }} />
     </Tab.Navigator>
   );
 }
 
 export default function AppNavigator() {
-  const { role, logout, loginAsClient } = useAppContext();
+  const { role, logout, loginAsClient, theme } = useAppContext();
 
   useEffect(() => {
     if (Platform.OS === 'web') {
@@ -140,8 +134,8 @@ export default function AppNavigator() {
             </View>
           ),
           headerRight: () => role ? (
-            <TouchableOpacity onPress={logout} style={{marginRight: 15, padding: 6, backgroundColor: 'rgba(233,30,99,0.1)', borderRadius: 8, borderWidth: 1, borderColor: 'rgba(233,30,99,0.3)'}}>
-              <Text style={{color: '#D48A9A', fontWeight: 'bold', fontSize: 13}}>Salir 🔒</Text>
+            <TouchableOpacity onPress={logout} style={{marginRight: 15, padding: 6, backgroundColor: theme.primaryColor + '1A', borderRadius: 8, borderWidth: 1, borderColor: theme.primaryColor + '4D'}}>
+              <Text style={{color: theme.primaryColor, fontWeight: 'bold', fontSize: 13}}>Salir 🔒</Text>
             </TouchableOpacity>
           ) : null
         }}
@@ -184,9 +178,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
     borderBottomColor: 'transparent'
   },
-  tabButtonActive: {
-    borderBottomColor: '#D48A9A', // Pink accent
-  },
   tabButtonInactive: {
     borderBottomColor: 'transparent',
   },
@@ -195,13 +186,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center'
   },
-  tabTextActive: {
-    color: '#D48A9A',
-    fontWeight: 'bold',
-  },
   tabTextInactive: {
     color: '#888888',
     fontWeight: '600',
   }
 });
-
