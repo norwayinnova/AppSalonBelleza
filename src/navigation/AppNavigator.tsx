@@ -45,15 +45,17 @@ function MainTabsComponent() {
 
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         tabBarScrollEnabled: true,
-        tabBarItemStyle: { width: 'auto', paddingHorizontal: 12 },
-        tabBarStyle: { backgroundColor: '#fff' },
+        tabBarStyle: { backgroundColor: '#fff', minHeight: 44 },
         tabBarIndicatorStyle: { backgroundColor: theme.primaryColor, height: 3 },
-        tabBarLabelStyle: { fontSize: 12, fontWeight: 'bold' },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: 'bold', color: theme.primaryColor, margin: 0, padding: 0 },
         tabBarActiveTintColor: theme.primaryColor,
-        tabBarInactiveTintColor: '#888',
-      }}
+        tabBarInactiveTintColor: '#555',
+        tabBarPressColor: theme.primaryColor,
+        tabBarShowLabel: true,
+        tabBarItemStyle: { paddingHorizontal: 8, minWidth: 80 },
+      })}
     >
       {showAdminOnly && <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: 'Dashboard' }} />}
       <Tab.Screen name="Calendar" component={CalendarScreen} options={{ tabBarLabel: 'Calendario' }} />
