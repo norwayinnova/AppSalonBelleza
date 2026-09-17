@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Image, View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
 import TenantLoginScreen from '../screens/TenantLoginScreen';
@@ -90,16 +90,16 @@ export default function AppNavigator() {
                     tabBarInactiveTintColor: '#888',
                   }}
                 >
-                  {showAdminOnly && <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: '📊 Dashboard' }} />}
-                  <Tab.Screen name="Calendar" component={CalendarScreen} options={{ tabBarLabel: '📅 Calendario' }} />
-                  <Tab.Screen name="Appointments" component={AppointmentsScreen} options={{ tabBarLabel: '➕ Nueva Cita' }} />
-                  {isAdmin && <Tab.Screen name="Clients" component={ClientsScreen} options={{ tabBarLabel: '👥 Clientes' }} />}
-                  {(isAdmin || isManagement) && <Tab.Screen name="Services" component={ServicesScreen} options={{ tabBarLabel: '💅 Servicios' }} />}
-                  {isAdmin && <Tab.Screen name="Expenses" component={ExpensesScreen} options={{ tabBarLabel: '💰 Gastos' }} />}
-                  {showAdminOnly && <Tab.Screen name="Calculator" component={CalculatorScreen} options={{ tabBarLabel: '🧮 Calculadora' }} />}
-                  {showAdminOnly && <Tab.Screen name="Promotions" component={PromotionsScreen} options={{ tabBarLabel: '🎁 Promociones' }} />}
-                  <Tab.Screen name="Inventory" component={InventoryScreen} options={{ tabBarLabel: '📦 Inventario' }} />
-                  {showAdminOnly && <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: '⚙️ Ajustes' }} />}
+                  {showAdminOnly && <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: 'Dashboard' }} />}
+                  <Tab.Screen name="Calendar" component={CalendarScreen} options={{ tabBarLabel: 'Calendario' }} />
+                  <Tab.Screen name="Appointments" component={AppointmentsScreen} options={{ tabBarLabel: 'Nueva Cita' }} />
+                  {isAdmin && <Tab.Screen name="Clients" component={ClientsScreen} options={{ tabBarLabel: 'Clientes' }} />}
+                  {(isAdmin || isManagement) && <Tab.Screen name="Services" component={ServicesScreen} options={{ tabBarLabel: 'Servicios' }} />}
+                  {isAdmin && <Tab.Screen name="Expenses" component={ExpensesScreen} options={{ tabBarLabel: 'Gastos' }} />}
+                  {showAdminOnly && <Tab.Screen name="Calculator" component={CalculatorScreen} options={{ tabBarLabel: 'Calculadora' }} />}
+                  {showAdminOnly && <Tab.Screen name="Promotions" component={PromotionsScreen} options={{ tabBarLabel: 'Promociones' }} />}
+                  <Tab.Screen name="Inventory" component={InventoryScreen} options={{ tabBarLabel: 'Inventario' }} />
+                  {showAdminOnly && <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: 'Ajustes' }} />}
                 </Tab.Navigator>
               )}
             </Stack.Screen>
@@ -131,7 +131,7 @@ export default function AppNavigator() {
                 headerTintColor: theme.lightTextColor,
                 headerLeft: () => (
                   <TouchableOpacity onPress={() => setTenantId('')} style={styles.backBtn}>
-                    <Text style={{color: theme.lightTextColor}}>← Volver</Text>
+                    <Text style={{color: theme.lightTextColor}}>Volver</Text>
                   </TouchableOpacity>
                 )
               }} 
