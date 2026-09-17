@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Image, View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
 import TenantLoginScreen from '../screens/TenantLoginScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
@@ -41,6 +41,8 @@ function MainTabsComponent() {
 
   const isAdmin = role === 'admin';
   const isMgmt = role === 'management';
+  const { width: screenWidth } = useWindowDimensions();
+  const MIN_TAB_WIDTH = 90;
 
   const tabs = [
     ...(isAdmin ? [{ name: 'Dashboard', label: 'Dashboard', component: DashboardScreen }] : []),
@@ -70,7 +72,11 @@ function MainTabsComponent() {
               <TouchableOpacity
                 key={tab.name}
                 onPress={() => setActiveTab(tab.name)}
-                style={[styles.tabItem, isActive && { borderBottomColor: theme.primaryColor, borderBottomWidth: 3 }]}
+                style={[
+                  styles.tabItem, 
+                  { width: Math.max(MIN_TAB_WIDTH, screenWidth / tabs.length) },
+                  isActive && { borderBottomColor: theme.primaryColor, borderBottomWidth: 3 }
+                ]}
               >
                 <Text style={[styles.tabLabel, { color: isActive ? theme.primaryColor : '#666' }, isActive && styles.tabLabelActive]}>
                   {tab.label}
