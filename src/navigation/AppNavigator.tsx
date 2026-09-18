@@ -21,6 +21,7 @@ import InventoryScreen from '../screens/InventoryScreen';
 import CalculatorScreen from '../screens/CalculatorScreen';
 import PromotionsScreen from '../screens/PromotionsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import GlobalReviewPrompt from '../components/GlobalReviewPrompt';
 
 const Stack = createNativeStackNavigator();
 
@@ -131,6 +132,7 @@ function ClientTabsComponent() {
       </View>
       <View style={{ flex: 1 }}>
         <ActiveComponent />
+        <GlobalReviewPrompt />
       </View>
     </View>
   );
