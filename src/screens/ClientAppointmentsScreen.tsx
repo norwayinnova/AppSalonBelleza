@@ -13,6 +13,33 @@ export default function ClientAppointmentsScreen() {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState<string | null>(null);
 
+  const [reviewPromptVisible, setReviewPromptVisible] = useState(false);
+  const [promptApp, setPromptApp] = useState<any>(null);
+
+  useEffect(() => {
+    if (appointments.length === 0 || loading) return;
+    const unprompted = appointments.find(a => a.status === 'completed' && !a.isReviewed && !a.reviewPromptShown);
+    if (unprompted && !reviewPromptVisible) {
+      setPromptApp(unprompted);
+      setReviewPromptVisible(true);
+    }
+  }, [appointments, loading]);
+
+  const dismissReviewPrompt = async () => {
+    setReviewPromptVisible(false);
+    if (promptApp) {
+      await updateDoc(doc(db, 'appointments', promptApp.id), { reviewPromptShown: true });
+    }
+  };
+
+  const acceptReviewPrompt = async () => {
+    if (!promptApp) return;
+    const appToReview = promptApp;
+    setReviewPromptVisible(false);
+    await updateDoc(doc(db, 'appointments', promptApp.id), { reviewPromptShown: true });
+    leaveGoogleReview(appToReview);
+  };
+
   useEffect(() => {
     if (!firebaseUser?.uid) return;
 
@@ -201,6 +228,25 @@ export default function ClientAppointmentsScreen() {
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalBtnConfirm} onPress={confirmCancel}>
                 <Text style={styles.modalBtnConfirmText}>Sí, Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={reviewPromptVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>{'\u2728'} ¡Esperamos que te haya gustado!</Text>
+            <Text style={styles.modalText}>
+              Tu cita en {salonsInfo[promptApp?.tenantId] || 'el salón'} ha finalizado. Apoya a tu profesional dejando una valoración en Google.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalBtnCancel} onPress={dismissReviewPrompt}>
+                <Text style={styles.modalBtnCancelText}>Ahora no</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: '#3498db' }]} onPress={acceptReviewPrompt}>
+                <Text style={styles.modalBtnConfirmText}>{'\u2B50'} Valorar en Google</Text>
               </TouchableOpacity>
             </View>
           </View>
