@@ -105,22 +105,24 @@ export default function ClientAppointmentsScreen() {
   const now = new Date();
   
   const upcoming = appointments.filter(a => {
-    if (a.status === 'cancelled') return false;
+    if (a.status === 'cancelled' || a.status === 'completed') return false;
     const appDate = new Date(`${a.date}T${a.time || '23:59'}`);
     return appDate >= now;
   });
 
   const past = appointments.filter(a => {
-    if (a.status === 'cancelled') return true;
+    if (a.status === 'cancelled' || a.status === 'completed') return true;
     const appDate = new Date(`${a.date}T${a.time || '23:59'}`);
     return appDate < now;
   });
 
   const renderItem = ({ item, isPast }: { item: any, isPast: boolean }) => {
     const isCancelled = item.status === 'cancelled';
+    const isCompleted = item.status === 'completed';
+    const isEffectivelyPast = isPast || isCompleted;
     
     return (
-      <View style={[styles.card, isPast && styles.cardPast, isCancelled && styles.cardCancelled]}>
+      <View style={[styles.card, isEffectivelyPast && styles.cardPast, isCancelled && styles.cardCancelled]}>
         <View style={styles.cardHeader}>
           <Text style={styles.salonName}>{salonsInfo[item.tenantId] || 'Cargando salón...'}</Text>
           <Text style={[styles.statusBadge, isCancelled && styles.statusCancelled]}>
