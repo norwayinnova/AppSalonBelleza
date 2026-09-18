@@ -900,8 +900,9 @@ export default function CalendarScreen({ route, navigation }: any) {
                               {conflicts[item.id] && <Text style={{ fontSize: 10, color: '#d9534f' }}>⚠️</Text>}
                             </TouchableOpacity>
                           );
-                        })}
-            </View>
+                        });
+                        })()}
+                        </View>
                     );
                   })}
                 </ScrollView>
