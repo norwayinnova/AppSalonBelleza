@@ -6,13 +6,12 @@ import { db } from '../config/firebase';
 import { Calendar } from 'react-native-calendars';
 
 export default function ClientBookingScreen({ navigation }: any) {
-  const { role, teamName, tenantId, theme, firebaseUser } = useAppContext();
+  const { role, teamName, tenantId, theme, firebaseUser, showToast } = useAppContext();
   const styles = getStyles(theme);
   const [step, setStep] = useState(1);
-    const { showToast } = useAppContext();
-    const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-    const [confirmMessage, setConfirmMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [loading, setLoading] = useState(true);
   
   // Data
   const [services, setServices] = useState<any[]>([]);
@@ -128,29 +127,41 @@ export default function ClientBookingScreen({ navigation }: any) {
         showToast('Introduce tu nombre y un teléfono válido.', 'error');
         return;
       }
-      // Check fidelity silently
       try {
         const qFidel = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('phone', '==', clientPhone.trim()), where('status', '==', 'completed'));
         const snap = await getDocs(qFidel);
         if (snap.size === 9) setIsTenthAppointment(true);
         else setIsTenthAppointment(false);
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) { }
       setStep(2);
     } else if (step === 2) {
-      if (!selectedService) {
-        showToast('Por favor, selecciona un servicio.', 'error');
-        return;
-      }
+      if (!selectedService) { showToast('Por favor, selecciona un servicio.', 'error'); return; }
       setStep(3);
     } else if (step === 3) {
-      if (!selectedTeam) {
-        showToast('Por favor, selecciona a un profesional.', 'error');
-        return;
-      }
+      if (!selectedTeam) { showToast('Por favor, selecciona a un profesional.', 'error'); return; }
       setStep(4);
     }
+  };
+
+  const handleBook = () => {
+    if (!selectedDate || !selectedTime) {
+      showToast('Selecciona fecha y hora.', 'error');
+      return;
+    }
+    const payment = theme.paymentOptions;
+    if (payment?.allowBizum) {
+      setConfirmMessage('Para confirmar, realiza un Bizum al ' + (payment.bizumPhone || 'teléfono del local') + '. ¿Deseas registrar la cita?');
+    } else if (payment?.allowStripe || payment?.allowRedsys || payment?.allowPaypal) {
+      setConfirmMessage('Serás redirigido a la pasarela de pago seguro. ¿Deseas continuar?');
+    } else {
+      setConfirmMessage('Tu cita será confirmada y pagarás en el local. ¿Confirmar?');
+    }
+    setConfirmModalVisible(true);
+  };
+
+  const confirmBookingAndClose = () => {
+    setConfirmModalVisible(false);
+    saveBooking();
   };
 
   const saveBooking = async () => {
@@ -158,7 +169,6 @@ export default function ClientBookingScreen({ navigation }: any) {
       let assignedTeamName = selectedTeam.name;
 
       if (selectedTeam.id === 'any') {
-        // Find which team is actually free at the selectedTime
         const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
         const snap = await getDocs(qApps);
         const allApps: any[] = [];
@@ -196,10 +206,11 @@ export default function ClientBookingScreen({ navigation }: any) {
 
       let finalNotes = 'Reserva Online - Fianza pagada';
       if (isTenthAppointment) {
-        finalNotes += '\n🌟 10ª Cita - APLICAR 20% DESCUENTO';
+        finalNotes += '\n\uD83C\uDF1F 10ª Cita - APLICAR 20% DESCUENTO';
       }
 
-      await addDoc(collection(db, 'appointments'), { tenantId,
+      await addDoc(collection(db, 'appointments'), { 
+        tenantId,
         clientId: firebaseUser?.uid || null,
         clientEmail: firebaseUser?.email || null,
         client: clientName.trim(),
@@ -211,13 +222,42 @@ export default function ClientBookingScreen({ navigation }: any) {
         price: selectedService.price || '0',
         team: assignedTeamName,
         status: 'pending',
-        paymentStatus: 'pending', // La fianza está pagada, pero el total queda pendiente
+        paymentStatus: 'pending',
         notes: finalNotes
       });
+
+      // ENVIAR EMAIL DE CONFIRMACIÓN VÍA EMAILJS
+      try {
+        const emailParams = {
+          service_id: 'SERVICE_ID_AQUI',
+          template_id: 'TEMPLATE_ID_AQUI',
+          user_id: 'PUBLIC_KEY_AQUI',
+          template_params: {
+            to_email: firebaseUser?.email || '',
+            to_name: clientName.trim(),
+            salon_name: theme.appName || 'Nuestro Salón',
+            service_name: selectedService.name,
+            appointment_date: selectedDate,
+            appointment_time: selectedTime,
+            team_name: assignedTeamName
+          }
+        };
+        // Si el usuario configuró EmailJS, se envía
+        if (emailParams.service_id !== 'SERVICE_ID_AQUI') {
+          fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(emailParams)
+          }).catch(err => console.log('EmailJS Error:', err));
+        }
+      } catch (e) {
+        console.log('Error preparando email', e);
+      }
+
       showToast('¡Reserva confirmada con éxito!', 'success');
-      // Reiniciar
+      
       setStep(1);
-      setClientName('');
+      setClientName(firebaseUser?.displayName || '');
       setClientPhone('');
       setSelectedDate('');
       setSelectedTime('');
@@ -228,28 +268,6 @@ export default function ClientBookingScreen({ navigation }: any) {
       showToast('Hubo un error al guardar la reserva.', 'error');
     }
   };
-
-    const handleBook = () => {
-      if (!selectedDate || !selectedTime) {
-        showToast('Selecciona fecha y hora.', 'error');
-        return;
-      }
-      
-      const payment = theme.paymentOptions;
-      if (payment?.allowBizum) {
-        setConfirmMessage('Para confirmar, realiza un Bizum al ' + (payment.bizumPhone || 'teléfono del local') + '. ¿Deseas registrar la cita?');
-      } else if (payment?.allowStripe || payment?.allowRedsys || payment?.allowPaypal) {
-        setConfirmMessage('Serás redirigido a la pasarela de pago seguro. ¿Deseas continuar?');
-      } else {
-        setConfirmMessage('Tu cita será confirmada y pagarás en el local. ¿Confirmar?');
-      }
-      setConfirmModalVisible(true);
-    };
-
-    const confirmBookingAndClose = () => {
-      setConfirmModalVisible(false);
-      saveBooking();
-    };
 
   if (loading) {
     return <ActivityIndicator size="large" color={theme.primaryColor} style={{flex:1, justifyContent:'center'}} />;
@@ -262,61 +280,56 @@ export default function ClientBookingScreen({ navigation }: any) {
         <Text style={styles.subtitle}>Reserva tu cita online</Text>
       </View>
 
-      {/* STEP 1 */}
       {step === 1 && (
         <View style={styles.card}>
           <Text style={styles.stepTitle}>1. Tus Datos</Text>
-          <TextInput style={styles.input} placeholder="Tu Nombre Completo" value={clientName} onChangeText={setClientName} />
-          <TextInput style={styles.input} placeholder="Tu Teléfono (ej. 600123456)" keyboardType="phone-pad" value={clientPhone} onChangeText={setClientPhone} />
-          <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}>
-            <Text style={styles.btnText}>Siguiente ›</Text>
-          </TouchableOpacity>
+          <TextInput style={styles.input} placeholder="Tu Nombre" value={clientName} onChangeText={setClientName} />
+          <TextInput style={styles.input} placeholder="Tu Teléfono" value={clientPhone} onChangeText={setClientPhone} keyboardType="phone-pad" />
+          <View style={styles.navRow}>
+            <View style={{flex:1}}></View>
+            <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente \u279C</Text></TouchableOpacity>
+          </View>
         </View>
       )}
 
-      {/* STEP 2 */}
       {step === 2 && (
         <View style={styles.card}>
-          <Text style={styles.stepTitle}>2. Elige el Servicio</Text>
+          <Text style={styles.stepTitle}>2. ¿Qué necesitas?</Text>
           <View style={styles.grid}>
             {services.map(s => (
               <TouchableOpacity key={s.id} style={[styles.optionCard, selectedService?.id === s.id && styles.optionSelected]} onPress={() => setSelectedService(s)}>
                 <Text style={[styles.optionTitle, selectedService?.id === s.id && styles.textSelected]}>{s.name}</Text>
-                <Text style={styles.optionSub}>⏱ {s.duration} min | {s.price ? `💶 ${s.price}€` : ''}</Text>
+                <Text style={styles.optionSub}>{s.duration} min | {s.price}€</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={styles.navRow}>
-            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(1)}><Text style={styles.btnBackText}>‹ Volver</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente ›</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(1)}><Text style={styles.btnBackText}>\u2190 Volver</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente \u279C</Text></TouchableOpacity>
           </View>
         </View>
       )}
 
-      {/* STEP 3 */}
       {step === 3 && (
         <View style={styles.card}>
           <Text style={styles.stepTitle}>3. ¿Con quién quieres tu cita?</Text>
           <View style={styles.grid}>
             <TouchableOpacity style={[styles.optionCard, selectedTeam?.id === 'any' && styles.optionSelected]} onPress={() => setSelectedTeam({id: 'any', name: 'Cualquiera'})}>
-              <Text style={[styles.optionTitle, selectedTeam?.id === 'any' && styles.textSelected]}>💇‍♀️ Sin preferencia (Cualquiera)</Text>
+              <Text style={[styles.optionTitle, selectedTeam?.id === 'any' && styles.textSelected]}>\uD83D\uDC87\u200D\u2640\uFE0F Sin preferencia (Cualquiera)</Text>
             </TouchableOpacity>
-            {teams
-              .filter(t => !selectedService?.allowedTeams || selectedService.allowedTeams.includes(t.name))
-              .map(t => (
+            {teams.filter(t => !selectedService?.allowedTeams || selectedService.allowedTeams.includes(t.name)).map(t => (
               <TouchableOpacity key={t.id} style={[styles.optionCard, selectedTeam?.id === t.id && styles.optionSelected]} onPress={() => setSelectedTeam(t)}>
-                <Text style={[styles.optionTitle, selectedTeam?.id === t.id && styles.textSelected]}>💇‍♀️ {t.name}</Text>
+                <Text style={[styles.optionTitle, selectedTeam?.id === t.id && styles.textSelected]}>\uD83D\uDC87\u200D\u2640\uFE0F {t.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={styles.navRow}>
-            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(2)}><Text style={styles.btnBackText}>‹ Volver</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente ›</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(2)}><Text style={styles.btnBackText}>\u2190 Volver</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente \u279C</Text></TouchableOpacity>
           </View>
         </View>
       )}
 
-      {/* STEP 4 */}
       {step === 4 && (
         <View style={styles.card}>
           <Text style={styles.stepTitle}>4. Elige Fecha y Hora</Text>
@@ -346,11 +359,12 @@ export default function ClientBookingScreen({ navigation }: any) {
           )}
 
           <View style={styles.navRow}>
-            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(3)}><Text style={styles.btnBackText}>‹ Volver</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(3)}><Text style={styles.btnBackText}>\u2190 Volver</Text></TouchableOpacity>
             <TouchableOpacity style={styles.btnAction} onPress={handleBook}><Text style={styles.btnText}>Confirmar y Pagar Fianza</Text></TouchableOpacity>
           </View>
         </View>
       )}
+      
       <Modal visible={confirmModalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
@@ -379,20 +393,17 @@ function getStyles(theme: any) { return StyleSheet.create({
   card: { backgroundColor: '#fff', margin: 15, borderRadius: 12, padding: 20, elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowOffset: {width:0, height:2} },
   stepTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 20, textAlign: 'center' },
   input: { borderWidth: 1, borderColor: '#ddd', padding: 15, borderRadius: 10, fontSize: 16, marginBottom: 15, backgroundColor: '#fafafa' },
-  
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   optionCard: { width: '48%', borderWidth: 1, borderColor: '#eee', padding: 15, borderRadius: 10, marginBottom: 15, alignItems: 'center', backgroundColor: '#fafafa' },
   optionSelected: { borderColor: theme.primaryColor, backgroundColor: '#fdf5f7' },
   optionTitle: { fontWeight: 'bold', color: '#555', textAlign: 'center' },
   optionSub: { fontSize: 12, color: '#888', marginTop: 5 },
   textSelected: { color: theme.primaryColor },
-
   navRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
   btnAction: { backgroundColor: theme.primaryColor, paddingVertical: 15, paddingHorizontal: 20, borderRadius: 10, flex: 1, alignItems: 'center', marginLeft: 5 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   btnBack: { backgroundColor: '#eee', paddingVertical: 15, paddingHorizontal: 20, borderRadius: 10, flex: 1, alignItems: 'center', marginRight: 5 },
   btnBackText: { color: '#555', fontSize: 16, fontWeight: 'bold' },
-
   timeGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', marginTop: 20 },
   timeSlot: { width: '22%', borderWidth: 1, borderColor: '#2ecc71', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginBottom: 10, marginRight: '3%', backgroundColor: '#fdfdfd' },
   timeSlotSelected: { backgroundColor: '#2ecc71' },
@@ -410,6 +421,3 @@ function getStyles(theme: any) { return StyleSheet.create({
   modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
 });
 }
-
-
-
