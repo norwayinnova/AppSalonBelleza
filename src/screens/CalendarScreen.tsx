@@ -459,11 +459,51 @@ export default function CalendarScreen({ route, navigation }: any) {
   };
 
   const openMaps = (address: string | undefined) => {
-    if (!address) return showToast('Esta cita no tiene dirección.', 'info');
+    if (!address) return showToast('Esta cita no tiene dirección.', 'error');
     Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`);
   };
 
-        showToast('Por favor, indica el importe final cobrado o a deber.', 'info');
+  const callClient = (phone: string | undefined) => {
+    if (!phone) return;
+    Linking.openURL(`tel:${phone}`);
+  };
+
+  const deleteAppointment = async (id: string) => {
+    confirmAction('Eliminar Cita', '¿Estás seguro de que deseas eliminar esta cita permanentemente?', async () => {
+      try {
+        await deleteDoc(doc(db, 'appointments', id));
+        setSelectedAppointment(null);
+        showToast('Cita eliminada correctamente', 'success');
+        setConfirmModalVisible(false);
+      } catch (error) {
+        showToast('Error al eliminar la cita.', 'error');
+      }
+    });
+  };
+
+  const cancelAppointment = async (id: string) => {
+    confirmAction('Cancelar Cita', '¿Deseas marcar esta cita como CANCELADA? Seguirá en el calendario en rojo.', async () => {
+      try {
+        const cancelledAt = new Date().toISOString();
+        await updateDoc(doc(db, 'appointments', id), {
+          status: 'cancelled',
+          cancelledAt: cancelledAt
+        });
+        if (selectedAppointment && selectedAppointment.id === id) {
+          setSelectedAppointment({ ...selectedAppointment, status: 'cancelled', cancelledAt });
+        }
+        showToast('Cita cancelada', 'success');
+        setConfirmModalVisible(false);
+      } catch (error) {
+        showToast('Error al cancelar la cita.', 'error');
+      }
+    });
+  };
+
+  const completeService = async (item: Appointment, payStatus: 'paid' | 'pending', payMethod?: 'cash' | 'bizum') => {
+    try {
+      if (!finalPriceInput.trim()) {
+        showToast('Por favor, indica el importe final cobrado o a deber.', 'error');
         return;
       }
       const nowStr = new Date().toISOString();
