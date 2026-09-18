@@ -651,9 +651,8 @@ export default function CalendarScreen({ route, navigation }: any) {
                     </View>
                   </TouchableOpacity>
                 );
-                                        });
-                        })()}
-                        </View>
+              })}
+            </View>
 
             {/* Leyenda */}
             <View style={styles.monthLegend}>
@@ -779,9 +778,8 @@ export default function CalendarScreen({ route, navigation }: any) {
                         <Text style={{ fontSize: 11, color: '#aaa', textAlign: 'right' }}>{String(Math.floor(h)).padStart(2,'0')}:00</Text>
                       </View>
                     );
-                                            });
-                        })()}
-                        </View>
+                  })}
+            </View>
 
                 {/* Grid (Horizontally Scrollable) */}
                 <ScrollView 
@@ -902,9 +900,8 @@ export default function CalendarScreen({ route, navigation }: any) {
                               {conflicts[item.id] && <Text style={{ fontSize: 10, color: '#d9534f' }}>⚠️</Text>}
                             </TouchableOpacity>
                           );
-                                                  });
-                        })()}
-                        </View>
+                        })}
+            </View>
                     );
                   })}
                 </ScrollView>
@@ -1118,9 +1115,8 @@ export default function CalendarScreen({ route, navigation }: any) {
                         </Text>
                       </TouchableOpacity>
                     );
-                                            });
-                        })()}
-                        </View>
+                  })}
+            </View>
               </View>
 
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 5 }}>
