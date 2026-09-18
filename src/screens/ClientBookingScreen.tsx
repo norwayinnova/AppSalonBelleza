@@ -197,6 +197,8 @@ export default function ClientBookingScreen({ navigation }: any) {
       }
 
       await addDoc(collection(db, 'appointments'), { tenantId,
+        clientId: firebaseUser?.uid || null,
+        clientEmail: firebaseUser?.email || null,
         client: clientName.trim(),
         phone: clientPhone.trim(),
         date: selectedDate,
