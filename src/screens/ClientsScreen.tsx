@@ -13,7 +13,7 @@ import {
   Platform,
   UIManager
 } from 'react-native';
-import { collection, onSnapshot, query, deleteDoc, doc , where} from 'firebase/firestore';
+import { collection, onSnapshot, query, deleteDoc, doc, where, updateDoc} from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -26,6 +26,8 @@ interface Client {
   phone: string;
   address?: string;
   detailedInfo?: string;
+  technicalNotes?: string;
+  technicalNotes?: string;
   createdAt?: any;
 }
 
@@ -40,6 +42,8 @@ interface Appointment {
   price?: string;
   address?: string;
   detailedInfo?: string;
+  technicalNotes?: string;
+  technicalNotes?: string;
   team?: string;
   status?: 'pending' | 'completed' | 'cancelled';
   paymentStatus?: 'paid' | 'pending';
@@ -47,7 +51,8 @@ interface Appointment {
 }
 
 export default function ClientsScreen() {
-  const { role, teamName, tenantId, theme } = useAppContext();
+  const { role, teamName, tenantId, theme, showToast } = useAppContext();
+  const [editingNotes, setEditingNotes] = useState<Record<string, string>>({});
   const styles = getStyles(theme);
   const [clients, setClients] = useState<Client[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -85,9 +90,27 @@ export default function ClientsScreen() {
     Linking.openURL(`tel:${phone}`);
   };
 
-  const toggleHistory = (clientId: string) => {
+  const toggleHistory = (clientId: string, currentNotes?: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedClientId(prev => prev === clientId ? null : clientId);
+    if (expandedClientId === clientId) {
+      setExpandedClientId(null);
+    } else {
+      setExpandedClientId(clientId);
+      if (editingNotes[clientId] === undefined) {
+        setEditingNotes(prev => ({ ...prev, [clientId]: currentNotes || '' }));
+      }
+    }
+  };
+
+  const saveNotes = async (clientId: string) => {
+    try {
+      await updateDoc(doc(db, 'clients', clientId), {
+        technicalNotes: editingNotes[clientId] || ''
+      });
+      if (showToast) showToast('Ficha técnica guardada.', 'success');
+    } catch (error) {
+      if (showToast) showToast('Error al guardar notas.', 'error');
+    }
   };
 
   const deleteClient = async (id: string, name: string) => {
@@ -162,7 +185,7 @@ export default function ClientsScreen() {
                   isVIP && { borderColor: 'rgba(241, 196, 15, 0.5)', backgroundColor: 'rgba(255, 249, 230, 0.9)' },
                   isProblematic && { borderColor: 'rgba(231, 76, 60, 0.5)', backgroundColor: 'rgba(253, 240, 240, 0.9)' }
                 ]}
-                onPress={() => toggleHistory(item.id)}
+                onPress={() => toggleHistory(item.id, item.technicalNotes)}
               >
                 <View style={styles.cardHeader}>
                   <View style={styles.avatarContainer}>
@@ -192,9 +215,27 @@ export default function ClientsScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {isExpanded && (
-                  <View style={styles.historyContainer}>
-                    <Text style={styles.historyTitle}>📋 Últimos Servicios:</Text>
+                                {isExpanded && (
+                  <View style={styles.expandedContainer}>
+                    <View style={styles.notesSection}>
+                      <Text style={styles.historyTitle}>📝 Ficha Técnica (Alergias, Fórmulas):</Text>
+                      <TextInput
+                        style={styles.notesInput}
+                        multiline
+                        placeholder="Ej: Alérgica al amoniaco. Base 7.1 con 20 vol..."
+                        value={editingNotes[item.id] !== undefined ? editingNotes[item.id] : (item.technicalNotes || '')}
+                        onChangeText={(txt) => setEditingNotes(prev => ({ ...prev, [item.id]: txt }))}
+                      />
+                      <TouchableOpacity 
+                        style={[styles.saveBtn, {backgroundColor: theme.primaryColor}]}
+                        onPress={() => saveNotes(item.id)}
+                      >
+                        <Text style={styles.saveBtnText}>Guardar Ficha</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.historyContainer}>
+                      <Text style={styles.historyTitle}>📅 Últimos Servicios:</Text>
                     {clientHistory.length === 0 ? (
                       <Text style={styles.noHistory}>No hay servicios registrados.</Text>
                     ) : (
@@ -296,7 +337,12 @@ function getStyles(theme: any) { return StyleSheet.create({
   deleteBtn: { padding: 8, backgroundColor: 'rgba(255,0,0,0.05)', borderRadius: 20, marginLeft: 10 },
   deleteBtnText: { fontSize: 16 },
   
-  historyContainer: { marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' },
+  expandedContainer: { marginTop: 15, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 10 },
+  notesSection: { marginBottom: 15, backgroundColor: '#fdfdfd', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#eee' },
+  notesInput: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, minHeight: 80, textAlignVertical: 'top', marginBottom: 10, fontSize: 14, color: '#333' },
+  saveBtn: { paddingVertical: 10, borderRadius: 6, alignItems: 'center' },
+  saveBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+  historyContainer: { marginTop: 5, paddingTop: 15, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' },
   historyTitle: { fontSize: 14, fontWeight: 'bold', color: '#444', marginBottom: 10 },
   historyItem: { backgroundColor: 'rgba(0,0,0,0.02)', padding: 10, borderRadius: 10, marginBottom: 8 },
   historyDate: { fontSize: 12, color: '#666', fontWeight: 'bold' },
