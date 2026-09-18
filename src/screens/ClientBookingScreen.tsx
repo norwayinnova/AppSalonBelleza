@@ -319,7 +319,7 @@ export default function ClientBookingScreen({ navigation }: any) {
             ))}
           </View>
           <View style={styles.navRow}>
-            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(1)}><Text style={styles.btnBackText}>\u2190 Volver</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(1)}><Text style={styles.btnBackText}>{'\u2190'} Volver</Text></TouchableOpacity>
             <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente \u279C</Text></TouchableOpacity>
           </View>
         </View>
@@ -339,7 +339,7 @@ export default function ClientBookingScreen({ navigation }: any) {
             ))}
           </View>
           <View style={styles.navRow}>
-            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(2)}><Text style={styles.btnBackText}>\u2190 Volver</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(2)}><Text style={styles.btnBackText}>{'\u2190'} Volver</Text></TouchableOpacity>
             <TouchableOpacity style={styles.btnAction} onPress={handleNextStep}><Text style={styles.btnText}>Siguiente \u279C</Text></TouchableOpacity>
           </View>
         </View>
@@ -378,7 +378,7 @@ export default function ClientBookingScreen({ navigation }: any) {
           )}
 
           <View style={styles.navRow}>
-            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(3)}><Text style={styles.btnBackText}>\u2190 Volver</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.btnBack} onPress={() => setStep(3)}><Text style={styles.btnBackText}>{'\u2190'} Volver</Text></TouchableOpacity>
             <TouchableOpacity style={styles.btnAction} onPress={handleBook}><Text style={styles.btnText}>Confirmar y Pagar Fianza</Text></TouchableOpacity>
           </View>
         </View>
