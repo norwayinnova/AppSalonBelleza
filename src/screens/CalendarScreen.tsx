@@ -231,14 +231,14 @@ export default function CalendarScreen({ route, navigation }: any) {
   }, []);
 
   const sendWhatsAppReminder = async (item: Appointment) => {
-    if (!item.phone) return showToast('El cliente no tiene teléfono guardado.', 'info');
+    if (!item.phone) return showToast('El cliente no tiene teléfono guardado.', 'error');
     
     const isTomorrow = item.date === tomorrowDateStr;
     const isToday = item.date === new Date().toISOString().split('T')[0];
     
     let dateText = isTomorrow ? 'mañana' : (isToday ? 'hoy' : `el día ${item.date}`);
     
-    const message = `Hola ${item.client}, te recordamos que ${dateText} tienes agendada la cita con ${theme.appName} a las ${item.time}.`;
+    const message = `Hola ${item.client}, te recordamos que ${dateText} tienes agendada la cita con ${theme.appName} a las ${item.time}. ¿Confirmas tu asistencia?`;
     
     let phoneNum = item.phone.replace(/\s+/g, '');
     if (phoneNum.length === 9 && (phoneNum.startsWith('6') || phoneNum.startsWith('7') || phoneNum.startsWith('8') || phoneNum.startsWith('9'))) {
@@ -255,7 +255,7 @@ export default function CalendarScreen({ route, navigation }: any) {
       });
       Linking.openURL(url);
     } catch(e) {
-      showToast('Error al actualizar el estado del recordatorio.', 'info');
+      showToast('Error al actualizar el estado del recordatorio.', 'error');
     }
   };
 
