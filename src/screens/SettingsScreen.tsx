@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Switch, Alert, Share } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db, storage } from '../config/firebase';
@@ -171,6 +171,37 @@ export default function SettingsScreen() {
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.darkTextColor }]}>Ajustes de mi Salón</Text>
         <Text style={styles.subtitle}>Personaliza tu escaparate en el Marketplace</Text>
+      </View>
+
+      <View style={[styles.card, { backgroundColor: '#fdf7f2', borderColor: '#f39c12', borderWidth: 1 }]}>
+        <Text style={[styles.sectionTitle, { color: '#e67e22' }]}>📢 Promocionar mi Salón</Text>
+        <Text style={{fontSize: 13, color: '#555', marginBottom: 15}}>
+          Comparte tu enlace con tus clientes para que puedan reservar directamente en tu salón sin necesidad de buscarte.
+        </Text>
+        
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <View style={{padding: 5, backgroundColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: '#eee'}}>
+            <Image 
+              source={{uri: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://appsalonbelleza.com/s/${tenantId}`}} 
+              style={{width: 100, height: 100}} 
+            />
+          </View>
+          <View style={{flex: 1, marginLeft: 15}}>
+            <TouchableOpacity 
+              style={{backgroundColor: '#2ecc71', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 10}}
+              onPress={() => {
+                Share.share({
+                  message: `¡Hola! Ya puedes reservar tu próxima cita en ${appName} cómodamente desde tu móvil. Entra aquí: https://appsalonbelleza.com/s/${tenantId}`,
+                });
+              }}
+            >
+              <Text style={{color: '#fff', fontWeight: 'bold'}}>Compartir por WhatsApp</Text>
+            </TouchableOpacity>
+            <Text style={{fontSize: 11, color: '#888', textAlign: 'center'}}>
+              Imprime el código QR y ponlo en el mostrador.
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.card}>

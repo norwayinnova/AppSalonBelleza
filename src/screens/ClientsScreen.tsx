@@ -57,6 +57,7 @@ export default function ClientsScreen() {
   const [clients, setClients] = useState<Client[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterMode, setFilterMode] = useState<'all' | 'sleeping'>('all');
   const [loading, setLoading] = useState(false);
   const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
 
@@ -140,10 +141,32 @@ export default function ClientsScreen() {
       return sum;
     }, 0);
 
-    return { ...client, clientHistory, completedCount, cancelledCount, totalSpent };
+    const now = new Date().getTime();
+    let isSleeping = false;
+    let daysSinceLast = 0;
+    
+    if (completedCount > 0) {
+      const lastCompleted = clientHistory.find(a => a.status === 'completed');
+      if (lastCompleted) {
+        const lastDate = new Date(lastCompleted.date).getTime();
+        daysSinceLast = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
+        
+        const hasPending = clientHistory.some(a => 
+          (a.status === 'pending' || !a.status) && 
+          new Date(a.date).getTime() >= now - (24 * 60 * 60 * 1000)
+        );
+        
+        if (daysSinceLast > 60 && !hasPending) {
+          isSleeping = true;
+        }
+      }
+    }
+
+    return { ...client, clientHistory, completedCount, cancelledCount, totalSpent, isSleeping, daysSinceLast };
   });
 
   const filteredClients = clientsWithStats.filter(c => {
+    if (filterMode === 'sleeping' && !c.isSleeping) return false;
     const term = searchTerm.toLowerCase();
     const matchesName = c.name.toLowerCase().includes(term);
     const matchesPhone = c.phone ? c.phone.includes(term) : false;
@@ -160,6 +183,21 @@ export default function ClientsScreen() {
         value={searchTerm}
         onChangeText={setSearchTerm}
       />
+      
+      <View style={{flexDirection: 'row', marginBottom: 15, backgroundColor: '#fff', borderRadius: 8, padding: 4}}>
+        <TouchableOpacity 
+          style={{flex: 1, padding: 8, borderRadius: 6, backgroundColor: filterMode === 'all' ? theme.primaryColor : 'transparent', alignItems: 'center'}}
+          onPress={() => setFilterMode('all')}
+        >
+          <Text style={{fontWeight: 'bold', color: filterMode === 'all' ? '#fff' : '#666'}}>Todos los Clientes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={{flex: 1, padding: 8, borderRadius: 6, backgroundColor: filterMode === 'sleeping' ? '#e74c3c' : 'transparent', alignItems: 'center'}}
+          onPress={() => setFilterMode('sleeping')}
+        >
+          <Text style={{fontWeight: 'bold', color: filterMode === 'sleeping' ? '#fff' : '#666'}}>Dormidos (>60 días)</Text>
+        </TouchableOpacity>
+      </View>
 
       {loading ? (
         <ActivityIndicator size="large" color={theme.primaryColor} style={{ marginTop: 30 }} />
@@ -217,6 +255,17 @@ export default function ClientsScreen() {
 
                 {isExpanded && (
                   <View style={styles.expandedContainer}>
+                    {item.isSleeping && item.phone && (
+                      <TouchableOpacity 
+                        style={{backgroundColor: '#e74c3c', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 15, elevation: 2}}
+                        onPress={() => {
+                          const msg = `¡Hola ${item.name}! Hace ${item.daysSinceLast} días que no te vemos por ${theme.appName}. ¡Te echamos de menos! Te regalamos un 10% de descuento directo si reservas tu próxima cita esta semana 😊`;
+                          Linking.openURL(`https://wa.me/${item.phone.replace(/\s+/g, '')}?text=${encodeURIComponent(msg)}`);
+                        }}
+                      >
+                        <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 14}}>🔔 Enviar Promoción Recuperación</Text>
+                      </TouchableOpacity>
+                    )}
                     <View style={styles.notesSection}>
                       <Text style={styles.historyTitle}>📝 Ficha Técnica (Alergias, Fórmulas):</Text>
                       <TextInput
