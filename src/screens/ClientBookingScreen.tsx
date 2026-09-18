@@ -229,9 +229,9 @@ export default function ClientBookingScreen({ navigation }: any) {
       // ENVIAR EMAIL DE CONFIRMACIÓN VÍA EMAILJS
       try {
         const emailParams = {
-          service_id: 'SERVICE_ID_AQUI',
-          template_id: 'TEMPLATE_ID_AQUI',
-          user_id: 'PUBLIC_KEY_AQUI',
+          service_id: 'service_ht0jlfj',
+          template_id: 'template_uw1kc9n',
+          user_id: 'DKeOwyQXqU50Y2lq-',
           template_params: {
             to_email: firebaseUser?.email || '',
             to_name: clientName.trim(),
@@ -243,7 +243,7 @@ export default function ClientBookingScreen({ navigation }: any) {
           }
         };
         // Si el usuario configuró EmailJS, se envía
-        if (emailParams.service_id !== 'SERVICE_ID_AQUI') {
+        if (emailParams.service_id) {
           fetch('https://api.emailjs.com/api/v1.0/email/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
