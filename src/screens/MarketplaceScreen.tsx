@@ -74,10 +74,6 @@ export default function MarketplaceScreen() {
                 </View>
                 <View style={styles.info}>
                   <Text style={styles.name}>{item.appName}</Text>
-                  
-                  
-                    )}
-                  </View>
 
                   {item.publicProfile?.address && (
                     <Text style={styles.address}>📍 {item.publicProfile.address}</Text>
