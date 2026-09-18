@@ -95,7 +95,6 @@ export default function ClientBookingScreen({ navigation }: any) {
         const mStr = (m % 60).toString().padStart(2, '0');
         allSlots.push(`${hStr}:${mStr}`);
       }
-      const duration = parseInt(selectedService.duration || '60');
 
       let teamsToCheck = selectedTeam.id === 'any' 
         ? teams.filter(t => !selectedService?.allowedTeams || selectedService.allowedTeams.includes(t.name)) 
