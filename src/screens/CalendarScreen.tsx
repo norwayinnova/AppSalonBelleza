@@ -52,7 +52,14 @@ interface Team {
 }
 
 export default function CalendarScreen({ route, navigation }: any) {
-  const { role, teamName, tenantId, theme } = useAppContext();
+  const { role, teamName, tenantId, theme, showToast } = useAppContext();
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({ title: '', text: '', onConfirm: () => {} });
+
+  const confirmAction = (title: string, text: string, onConfirm: () => void) => {
+    setConfirmConfig({ title, text, onConfirm });
+    setConfirmModalVisible(true);
+  };
   const styles = getStyles(theme);
   const isAdmin = role === 'admin' || role === 'management';
   const isStrictAdmin = role === 'admin'; // Para funciones exclusivas de admin (borrar, facturar, etc.)
@@ -224,7 +231,7 @@ export default function CalendarScreen({ route, navigation }: any) {
   }, []);
 
   const sendWhatsAppReminder = async (item: Appointment) => {
-    if (!item.phone) return alert('El cliente no tiene teléfono guardado.');
+    if (!item.phone) return showToast('El cliente no tiene teléfono guardado.', 'info');
     
     const isTomorrow = item.date === tomorrowDateStr;
     const isToday = item.date === new Date().toISOString().split('T')[0];
@@ -248,12 +255,12 @@ export default function CalendarScreen({ route, navigation }: any) {
       });
       Linking.openURL(url);
     } catch(e) {
-      alert('Error al actualizar el estado del recordatorio.');
+      showToast('Error al actualizar el estado del recordatorio.', 'info');
     }
   };
 
   const requestGoogleReview = async (item: Appointment) => {
-    if (!item.phone) return alert('El cliente no tiene teléfono guardado.');
+    if (!item.phone) return showToast('El cliente no tiene teléfono guardado.', 'info');
     
     const message = `¡Hola ${item.client}! 👋\nEsperamos que hayas quedado encantado con el servicio de ${item.serviceName.toLowerCase()}. ✨\n\nPara nosotros tu opinión es fundamental. Si te ha gustado el resultado, ¿nos regalarías 1 minuto para dejarnos 5 estrellitas en Google? Nos ayuda muchísimo a seguir creciendo. 🙏\n\n⭐ Puedes hacerlo aquí: https://share.google/8mzwiMXmLf2HoZoOS\n\n¡Mil gracias por confiar en ${theme.appName}!`;
     
@@ -272,7 +279,7 @@ export default function CalendarScreen({ route, navigation }: any) {
       });
       Linking.openURL(url);
     } catch(e) {
-      alert('Error al actualizar el estado de la reseña.');
+      showToast('Error al actualizar el estado de la reseña.', 'info');
     }
   };
 
@@ -287,7 +294,7 @@ export default function CalendarScreen({ route, navigation }: any) {
     // Equipos disponibles
     const availableTeams = teams.map(t => t.name);
     if (availableTeams.length < 2) {
-      alert('Se necesitan al menos 2 equipos para optimizar rutas inter-equipo.');
+      showToast('Se necesitan al menos 2 equipos para optimizar rutas inter-equipo.', 'info');
       return;
     }
 
@@ -332,7 +339,7 @@ export default function CalendarScreen({ route, navigation }: any) {
       setOptimizationSuggestions([suggestions[0]]); // Mostramos solo la mejor
       setShowOptimizerModal(true);
     } else {
-      alert('No se encontraron optimizaciones evidentes para los horarios y equipos actuales.');
+      showToast('No se encontraron optimizaciones evidentes para los horarios y equipos actuales.', 'info');
     }
   };
 
@@ -342,15 +349,15 @@ export default function CalendarScreen({ route, navigation }: any) {
         team: suggestion.toTeam
       });
       setShowOptimizerModal(false);
-      alert('Ruta optimizada y cita reasignada con éxito.');
+      showToast('Ruta optimizada y cita reasignada con éxito.', 'info');
     } catch (e) {
-      alert('Error al aplicar la optimización.');
+      showToast('Error al aplicar la optimización.', 'info');
     }
   };
 
   const saveTeam = async () => {
     if (formTeamName.trim() === '') {
-      alert('El nombre del equipo es obligatorio.');
+      showToast('El nombre del equipo es obligatorio.', 'info');
       return;
     }
 
@@ -404,7 +411,7 @@ export default function CalendarScreen({ route, navigation }: any) {
       setTeamTools('');
       setTeamServices([]);
     } catch (e) {
-      alert('Error al guardar el equipo.');
+      showToast('Error al guardar el equipo.', 'info');
     }
   };
 
@@ -430,17 +437,18 @@ export default function CalendarScreen({ route, navigation }: any) {
 
   const removeTeam = async (id: string, name: string) => {
     if (teams.length <= 1) {
-      alert('Debes mantener al menos 1 equipo activo.');
+      showToast('Debes mantener al menos 1 equipo activo.', 'error');
       return;
     }
-    if (window.confirm(`¿Seguro que deseas eliminar el "${name}"?`)) {
+    confirmAction('Eliminar Equipo', `¿Seguro que deseas eliminar el equipo "${name}"?`, async () => {
       try {
         await deleteDoc(doc(db, 'teams', id));
         if (editingTeamId === id) cancelEditTeam();
+        setConfirmModalVisible(false);
       } catch (e) {
-        alert('Error al eliminar el equipo.');
+        showToast('Error al eliminar el equipo.', 'error');
       }
-    }
+    });
   };
 
   const toggleTeamDetails = (teamId: string) => {
@@ -451,47 +459,11 @@ export default function CalendarScreen({ route, navigation }: any) {
   };
 
   const openMaps = (address: string | undefined) => {
-    if (!address) return alert('Esta cita no tiene dirección.');
+    if (!address) return showToast('Esta cita no tiene dirección.', 'info');
     Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`);
   };
 
-  const callClient = (phone: string | undefined) => {
-    if (!phone) return;
-    Linking.openURL(`tel:${phone}`);
-  };
-
-  const deleteAppointment = async (id: string) => {
-    if (window.confirm('¿Estás completamente seguro de que deseas eliminar esta cita?')) {
-      try {
-        await deleteDoc(doc(db, 'appointments', id));
-        setSelectedAppointment(null);
-      } catch (error) {
-        alert('Hubo un error al intentar eliminar la cita.');
-      }
-    }
-  };
-
-  const cancelAppointment = async (id: string) => {
-    if (window.confirm('¿Deseas marcar esta cita como CANCELADA? (Seguirá en el calendario pero en rojo)')) {
-      try {
-        const cancelledAt = new Date().toISOString();
-        await updateDoc(doc(db, 'appointments', id), {
-          status: 'cancelled',
-          cancelledAt: cancelledAt
-        });
-        if (selectedAppointment && selectedAppointment.id === id) {
-          setSelectedAppointment({ ...selectedAppointment, status: 'cancelled', cancelledAt });
-        }
-      } catch (error) {
-        alert('Hubo un error al intentar cancelar la cita.');
-      }
-    }
-  };
-
-  const completeService = async (item: Appointment, payStatus: 'paid' | 'pending', payMethod?: 'cash' | 'bizum') => {
-    try {
-      if (!finalPriceInput.trim()) {
-        alert('Por favor, indica el importe final cobrado o a deber.');
+        showToast('Por favor, indica el importe final cobrado o a deber.', 'info');
         return;
       }
       const nowStr = new Date().toISOString();
@@ -505,9 +477,9 @@ export default function CalendarScreen({ route, navigation }: any) {
       if (selectedAppointment && selectedAppointment.id === item.id) {
          setSelectedAppointment({ ...selectedAppointment, status: 'completed', completedAt: nowStr, paymentStatus: payStatus, paymentMethod: payMethod, finalPrice: finalPriceInput });
       }
-      alert(payStatus === 'paid' ? '¡Servicio cobrado correctamente!' : 'Servicio guardado como Pago Pendiente.');
+      showToast(payStatus === 'paid' ? '¡Servicio cobrado correctamente!' : 'Servicio guardado como Pago Pendiente.', 'success');
     } catch (e) {
-      alert('Error al completar el servicio.');
+      showToast('Error al completar el servicio.', 'info');
     }
   };
 
@@ -553,13 +525,13 @@ export default function CalendarScreen({ route, navigation }: any) {
                  const t = teams.find(t => t.name === teamName);
                  if (t) {
                    require('firebase/firestore').updateDoc(require('firebase/firestore').doc(db, 'teams', t.id), { pin: newPin })
-                     .then(() => alert('Tu PIN ha sido actualizado con éxito.'))
-                     .catch(() => alert('Hubo un error al actualizar tu PIN.'));
+                     .then(() => showToast('Tu PIN ha sido actualizado con éxito.', 'info'))
+                     .catch(() => showToast('Hubo un error al actualizar tu PIN.', 'info'));
                  } else {
-                   alert('No se encontró tu equipo.');
+                   showToast('No se encontró tu equipo.', 'info');
                  }
               } else if (newPin) {
-                 alert('El PIN debe tener exactamente 4 dígitos numéricos.');
+                 showToast('El PIN debe tener exactamente 4 dígitos numéricos.', 'info');
               }
             }}>
               <Text style={[styles.manageTeamsText, {color: '#555'}]}>🔐 Mi PIN</Text>
@@ -758,9 +730,25 @@ export default function CalendarScreen({ route, navigation }: any) {
                       <Text style={{ fontWeight: 'bold', color: theme.darkTextColor, fontSize: 13 }}>🚐 {t.name}</Text>
                       {t.members ? <Text style={{ fontSize: 11, color: '#888', marginTop: 2 }}>👥 {t.members}</Text> : null}
                       <Text style={{ fontSize: 11, color: theme.primaryColor, marginTop: 2, fontWeight: 'bold' }}>{teamApps.length} cita{teamApps.length !== 1 ? 's' : ''}</Text>
-                    </View>
-                  );
-                })}
+                      <Modal visible={confirmModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxWidth: 400 }]}>
+            <Text style={styles.modalTitle}>{confirmConfig.title}</Text>
+            <Text style={{ fontSize: 15, color: '#333', marginBottom: 20 }}>{confirmConfig.text}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+              <TouchableOpacity style={styles.cancelEditBtn} onPress={() => setConfirmModalVisible(false)}>
+                <Text style={styles.cancelEditBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.saveTeamBtn, { backgroundColor: '#e74c3c' }]} onPress={confirmConfig.onConfirm}>
+                <Text style={styles.saveTeamBtnText}>Confirmar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+})}
               </ScrollView>
             </View>
 
@@ -776,9 +764,25 @@ export default function CalendarScreen({ route, navigation }: any) {
                     return (
                       <View key={h} style={{ height: 60 * PX_PER_MIN, justifyContent: 'flex-start', paddingTop: 4, paddingRight: 6 }}>
                         <Text style={{ fontSize: 11, color: '#aaa', textAlign: 'right' }}>{String(Math.floor(h)).padStart(2,'0')}:00</Text>
-                      </View>
-                    );
-                  })}
+                        <Modal visible={confirmModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxWidth: 400 }]}>
+            <Text style={styles.modalTitle}>{confirmConfig.title}</Text>
+            <Text style={{ fontSize: 15, color: '#333', marginBottom: 20 }}>{confirmConfig.text}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+              <TouchableOpacity style={styles.cancelEditBtn} onPress={() => setConfirmModalVisible(false)}>
+                <Text style={styles.cancelEditBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.saveTeamBtn, { backgroundColor: '#e74c3c' }]} onPress={confirmConfig.onConfirm}>
+                <Text style={styles.saveTeamBtnText}>Confirmar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+})}
             </View>
 
                 {/* Grid (Horizontally Scrollable) */}
@@ -902,15 +906,47 @@ export default function CalendarScreen({ route, navigation }: any) {
                           );
                         });
                         })()}
-                        </View>
-                    );
-                  })}
+                          <Modal visible={confirmModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxWidth: 400 }]}>
+            <Text style={styles.modalTitle}>{confirmConfig.title}</Text>
+            <Text style={{ fontSize: 15, color: '#333', marginBottom: 20 }}>{confirmConfig.text}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+              <TouchableOpacity style={styles.cancelEditBtn} onPress={() => setConfirmModalVisible(false)}>
+                <Text style={styles.cancelEditBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.saveTeamBtn, { backgroundColor: '#e74c3c' }]} onPress={confirmConfig.onConfirm}>
+                <Text style={styles.saveTeamBtnText}>Confirmar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+})}
                 </ScrollView>
               </View>
             </ScrollView>
+            <Modal visible={confirmModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxWidth: 400 }]}>
+            <Text style={styles.modalTitle}>{confirmConfig.title}</Text>
+            <Text style={{ fontSize: 15, color: '#333', marginBottom: 20 }}>{confirmConfig.text}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+              <TouchableOpacity style={styles.cancelEditBtn} onPress={() => setConfirmModalVisible(false)}>
+                <Text style={styles.cancelEditBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.saveTeamBtn, { backgroundColor: '#e74c3c' }]} onPress={confirmConfig.onConfirm}>
+                <Text style={styles.saveTeamBtnText}>Confirmar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        );
-      })()}
+        </View>
+      </Modal>
+    </View>
+  );
+})()}
 
       {/* MODAL DE DETALLES DEL SERVICIO */}
       <Modal visible={!!selectedAppointment} animationType="slide" transparent={true}>
@@ -1207,6 +1243,22 @@ export default function CalendarScreen({ route, navigation }: any) {
         </View>
       </Modal>
 
+      <Modal visible={confirmModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxWidth: 400 }]}>
+            <Text style={styles.modalTitle}>{confirmConfig.title}</Text>
+            <Text style={{ fontSize: 15, color: '#333', marginBottom: 20 }}>{confirmConfig.text}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+              <TouchableOpacity style={styles.cancelEditBtn} onPress={() => setConfirmModalVisible(false)}>
+                <Text style={styles.cancelEditBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.saveTeamBtn, { backgroundColor: '#e74c3c' }]} onPress={confirmConfig.onConfirm}>
+                <Text style={styles.saveTeamBtnText}>Confirmar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
