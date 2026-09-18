@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Modal, Linking } from 'react-native';
 import { collection, query, onSnapshot, where, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Calendar } from 'react-native-calendars';
@@ -9,6 +9,9 @@ export default function ClientBookingScreen({ navigation }: any) {
   const { role, teamName, tenantId, theme, firebaseUser } = useAppContext();
   const styles = getStyles(theme);
   const [step, setStep] = useState(1);
+    const { showToast } = useAppContext();
+    const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+    const [confirmMessage, setConfirmMessage] = useState('');
   const [loading, setLoading] = useState(false);
   
   // Data
@@ -122,7 +125,7 @@ export default function ClientBookingScreen({ navigation }: any) {
   const handleNextStep = async () => {
     if (step === 1) {
       if (!clientName.trim() || !clientPhone.trim() || clientPhone.length < 6) {
-        alert('Por favor, introduce tu nombre y un teléfono válido.');
+        showToast('Introduce tu nombre y un teléfono válido.', 'error');
         return;
       }
       // Check fidelity silently
@@ -137,13 +140,13 @@ export default function ClientBookingScreen({ navigation }: any) {
       setStep(2);
     } else if (step === 2) {
       if (!selectedService) {
-        alert('Selecciona un servicio.');
+        showToast('Por favor, selecciona un servicio.', 'error');
         return;
       }
       setStep(3);
     } else if (step === 3) {
       if (!selectedTeam) {
-        alert('Selecciona a una profesional.');
+        showToast('Por favor, selecciona a un profesional.', 'error');
         return;
       }
       setStep(4);
@@ -211,7 +214,7 @@ export default function ClientBookingScreen({ navigation }: any) {
         paymentStatus: 'pending', // La fianza está pagada, pero el total queda pendiente
         notes: finalNotes
       });
-      alert(`${theme.appName}`);
+      showToast('¡Reserva confirmada con éxito!', 'success');
       // Reiniciar
       setStep(1);
       setClientName('');
@@ -222,30 +225,31 @@ export default function ClientBookingScreen({ navigation }: any) {
       setSelectedTeam(null);
       setIsTenthAppointment(false);
     } catch (e: any) {
-      alert(e.message || 'Hubo un error al guardar la reserva.');
+      showToast('Hubo un error al guardar la reserva.', 'error');
     }
   };
 
-  const handleBook = () => {
-    if (!selectedDate || !selectedTime) {
-      alert('Selecciona fecha y hora.');
-      return;
-    }
-          const payment = theme.paymentOptions;
-      if (payment?.allowBizum) {
-        if (window.confirm('Para confirmar, realiza un Bizum al ' + (payment.bizumPhone || 'teléfono del local') + '. ¿Deseas registrar la cita?')) {
-          saveBooking();
-        }
-      } else if (payment?.allowStripe || payment?.allowRedsys || payment?.allowPaypal) {
-         if (window.confirm('Serás redirigido a la pasarela de pago seguro. ¿Deseas continuar?')) {
-            saveBooking();
-         }
-      } else {
-         if (window.confirm('Tu cita será confirmada y pagarás en el local. ¿Confirmar?')) {
-            saveBooking();
-         }
+    const handleBook = () => {
+      if (!selectedDate || !selectedTime) {
+        showToast('Selecciona fecha y hora.', 'error');
+        return;
       }
-  };
+      
+      const payment = theme.paymentOptions;
+      if (payment?.allowBizum) {
+        setConfirmMessage('Para confirmar, realiza un Bizum al ' + (payment.bizumPhone || 'teléfono del local') + '. ¿Deseas registrar la cita?');
+      } else if (payment?.allowStripe || payment?.allowRedsys || payment?.allowPaypal) {
+        setConfirmMessage('Serás redirigido a la pasarela de pago seguro. ¿Deseas continuar?');
+      } else {
+        setConfirmMessage('Tu cita será confirmada y pagarás en el local. ¿Confirmar?');
+      }
+      setConfirmModalVisible(true);
+    };
+
+    const confirmBookingAndClose = () => {
+      setConfirmModalVisible(false);
+      saveBooking();
+    };
 
   if (loading) {
     return <ActivityIndicator size="large" color={theme.primaryColor} style={{flex:1, justifyContent:'center'}} />;

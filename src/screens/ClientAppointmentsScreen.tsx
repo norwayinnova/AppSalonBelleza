@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
 import { collection, query, where, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAppContext } from '../context/AppContext';
@@ -8,7 +8,19 @@ export default function ClientAppointmentsScreen() {
   const { firebaseUser, theme } = useAppContext();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [salonsInfo, setSalonsInfo] = useState<Record<string, string>>({});
+  const [salonsInfo, setSalonsInfo] = useState<Record<string, string>>({  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
+  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
+  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
+  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
+});
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [appointmentToCancel, setAppointmentToCancel] = useState<string | null>(null);
+  const { showToast } = useAppContext();
 
   useEffect(() => {
     if (!firebaseUser?.uid) return;
@@ -26,7 +38,16 @@ export default function ClientAppointmentsScreen() {
         const dA = new Date(`${a.date}T${a.time || '00:00'}`);
         const dB = new Date(`${b.date}T${b.time || '00:00'}`);
         return dA.getTime() - dB.getTime();
-      });
+        modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
+  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
+  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
+  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
+});
 
       setAppointments(apps);
 
@@ -50,19 +71,49 @@ export default function ClientAppointmentsScreen() {
       }
 
       setLoading(false);
-    });
+      modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
+  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
+  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
+  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
+});
 
     return () => unsubscribe();
   }, [firebaseUser?.uid]);
 
+  const confirmCancel = () => {
+    if (!appointmentToCancel) return;
+    updateDoc(doc(db, 'appointments', appointmentToCancel), {
+      status: 'cancelled',
+      notes: 'Cancelada por el cliente'
+    })
+    .then(() => {
+      showToast('Cita cancelada correctamente', 'success');
+      setCancelModalVisible(false);
+      setAppointmentToCancel(null);
+    })
+    .catch(err => {
+      showToast('Error al cancelar la cita', 'error');
+      setCancelModalVisible(false);
+      modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
+  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
+  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
+  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
+});
+  };
+
   const handleCancel = (appId: string) => {
-    // In React Native Web, Alert works but custom buttons are limited, we use standard confirm for web safety or simple Alert
-    if (window.confirm('¿Seguro que deseas cancelar esta cita?')) {
-      updateDoc(doc(db, 'appointments', appId), {
-        status: 'cancelled',
-        notes: 'Cancelada por el cliente'
-      }).catch(err => alert('Error al cancelar la cita: ' + err.message));
-    }
+    setAppointmentToCancel(appId);
+    setCancelModalVisible(true);
   };
 
   const now = new Date();
@@ -71,13 +122,31 @@ export default function ClientAppointmentsScreen() {
     if (a.status === 'cancelled') return false;
     const appDate = new Date(`${a.date}T${a.time || '23:59'}`);
     return appDate >= now;
-  });
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
+  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
+  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
+  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
+});
 
   const past = appointments.filter(a => {
     if (a.status === 'cancelled') return true; // Show cancelled in history
     const appDate = new Date(`${a.date}T${a.time || '23:59'}`);
     return appDate < now;
-  });
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
+  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
+  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
+  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
+});
 
   const renderItem = ({ item, isPast }: { item: any, isPast: boolean }) => {
     const isCancelled = item.status === 'cancelled';
@@ -131,11 +200,36 @@ export default function ClientAppointmentsScreen() {
             }
             // Check if it's past by looking at if it's in the 'past' array
             const isPast = past.some(p => p.id === item.id);
-            return renderItem({ item, isPast });
+            return renderItem({ item, isPast   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
+  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
+  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
+  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
+});
           }}
           contentContainerStyle={{ paddingBottom: 40 }}
         />
       )}
+      <Modal visible={cancelModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Cancelar Cita</Text>
+            <Text style={styles.modalText}>¿Estás seguro de que deseas cancelar esta cita? Esta acción no se puede deshacer.</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalBtnCancel} onPress={() => setCancelModalVisible(false)}>
+                <Text style={styles.modalBtnCancelText}>Volver</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalBtnConfirm} onPress={confirmCancel}>
+                <Text style={styles.modalBtnConfirmText}>Sí, Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -179,4 +273,13 @@ const styles = StyleSheet.create({
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 60 },
   emptyTitle: { fontSize: 18, fontWeight: 'bold', color: '#34495e', marginBottom: 8 },
   emptySub: { fontSize: 14, color: '#7f8c8d', textAlign: 'center' }
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
+  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
+  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
+  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
 });
