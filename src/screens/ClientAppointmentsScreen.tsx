@@ -5,22 +5,12 @@ import { db } from '../config/firebase';
 import { useAppContext } from '../context/AppContext';
 
 export default function ClientAppointmentsScreen() {
-  const { firebaseUser, theme } = useAppContext();
+  const { firebaseUser, theme, showToast } = useAppContext();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [salonsInfo, setSalonsInfo] = useState<Record<string, string>>({  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
-  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
-  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
-  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
-  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
-  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
-});
+  const [salonsInfo, setSalonsInfo] = useState<Record<string, string>>({});
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState<string | null>(null);
-  const { showToast } = useAppContext();
 
   useEffect(() => {
     if (!firebaseUser?.uid) return;
@@ -33,25 +23,14 @@ export default function ClientAppointmentsScreen() {
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       const apps = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       
-      // Sort by date/time (newest first for general, then split)
       apps.sort((a, b) => {
         const dA = new Date(`${a.date}T${a.time || '00:00'}`);
         const dB = new Date(`${b.date}T${b.time || '00:00'}`);
         return dA.getTime() - dB.getTime();
-        modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
-  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
-  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
-  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
-  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
-  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
-});
+      });
 
       setAppointments(apps);
 
-      // Fetch salon names if we don't have them
       const missingTenants = [...new Set(apps.map(a => a.tenantId).filter(id => !salonsInfo[id]))];
       if (missingTenants.length > 0) {
         const newSalons = { ...salonsInfo };
@@ -71,16 +50,7 @@ export default function ClientAppointmentsScreen() {
       }
 
       setLoading(false);
-      modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
-  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
-  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
-  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
-  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
-  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
-});
+    });
 
     return () => unsubscribe();
   }, [firebaseUser?.uid]);
@@ -99,16 +69,7 @@ export default function ClientAppointmentsScreen() {
     .catch(err => {
       showToast('Error al cancelar la cita', 'error');
       setCancelModalVisible(false);
-      modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
-  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
-  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
-  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
-  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
-  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
-});
+    });
   };
 
   const handleCancel = (appId: string) => {
@@ -122,31 +83,13 @@ export default function ClientAppointmentsScreen() {
     if (a.status === 'cancelled') return false;
     const appDate = new Date(`${a.date}T${a.time || '23:59'}`);
     return appDate >= now;
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
-  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
-  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
-  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
-  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
-  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
-});
+  });
 
   const past = appointments.filter(a => {
-    if (a.status === 'cancelled') return true; // Show cancelled in history
+    if (a.status === 'cancelled') return true;
     const appDate = new Date(`${a.date}T${a.time || '23:59'}`);
     return appDate < now;
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
-  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
-  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
-  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
-  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
-  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
-});
+  });
 
   const renderItem = ({ item, isPast }: { item: any, isPast: boolean }) => {
     const isCancelled = item.status === 'cancelled';
@@ -198,22 +141,13 @@ export default function ClientAppointmentsScreen() {
             if (item.type === 'header') {
               return <Text style={styles.sectionTitle}>{item.title}</Text>;
             }
-            // Check if it's past by looking at if it's in the 'past' array
             const isPast = past.some(p => p.id === item.id);
-            return renderItem({ item, isPast   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
-  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
-  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
-  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
-  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
-  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
-});
+            return renderItem({ item, isPast });
           }}
           contentContainerStyle={{ paddingBottom: 40 }}
         />
       )}
+      
       <Modal visible={cancelModalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
@@ -272,7 +206,7 @@ const styles = StyleSheet.create({
   cancelBtnText: { color: '#e74c3c', fontWeight: 'bold', fontSize: 13 },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 60 },
   emptyTitle: { fontSize: 18, fontWeight: 'bold', color: '#34495e', marginBottom: 8 },
-  emptySub: { fontSize: 14, color: '#7f8c8d', textAlign: 'center' }
+  emptySub: { fontSize: 14, color: '#7f8c8d', textAlign: 'center' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
