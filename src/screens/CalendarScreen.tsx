@@ -879,8 +879,8 @@ export default function CalendarScreen({ route, navigation }: any) {
                                 style={{
                                   position: 'absolute',
                                   top,
-                                  left: ${leftPercentage}%,
-                                  width: ${widthPercentage}%,
+                                  left: `${leftPercentage}%`,
+                                  width: `${widthPercentage}%`,
                                   height,
                                 backgroundColor: colors.bg,
                                 borderRadius: 6,
