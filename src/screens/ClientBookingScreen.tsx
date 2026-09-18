@@ -351,6 +351,22 @@ export default function ClientBookingScreen({ navigation }: any) {
           </View>
         </View>
       )}
+      <Modal visible={confirmModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Confirmar Reserva</Text>
+            <Text style={styles.modalText}>{confirmMessage}</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalBtnCancel} onPress={() => setConfirmModalVisible(false)}>
+                <Text style={styles.modalBtnCancelText}>Volver</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalBtnConfirm, { backgroundColor: theme.primaryColor }]} onPress={confirmBookingAndClose}>
+                <Text style={styles.modalBtnConfirmText}>Sí, Confirmar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -382,7 +398,16 @@ function getStyles(theme: any) { return StyleSheet.create({
   timeSlotSelected: { backgroundColor: '#2ecc71' },
   timeText: { color: '#2ecc71', fontWeight: 'bold', fontSize: 16 },
   timeTextSelected: { color: '#fff' },
-  noSlotsText: { textAlign: 'center', marginTop: 20, color: '#888', fontStyle: 'italic' }
+  noSlotsText: { textAlign: 'center', marginTop: 20, color: '#888', fontStyle: 'italic' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowOffset: { width: 0, height: 2 }, shadowRadius: 8 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#2c3e50', marginBottom: 12 },
+  modalText: { fontSize: 15, color: '#34495e', marginBottom: 24, lineHeight: 22 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
+  modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
+  modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
+  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
 });
 }
 
