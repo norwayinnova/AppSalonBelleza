@@ -577,7 +577,7 @@ export default function CalendarScreen({ route, navigation }: any) {
               <Text style={[styles.manageTeamsText, {color: '#555'}]}>🔐 Mi PIN</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.newApptBtn} onPress={() => navigation.navigate('Appointments')}>
+          <TouchableOpacity style={styles.newApptBtn} onPress={() => showToast('Usa la pestaña "Nueva Cita" del menú superior.', 'info')}>
             <Text style={styles.newApptText}>+ Cita</Text>
           </TouchableOpacity>
         </View>

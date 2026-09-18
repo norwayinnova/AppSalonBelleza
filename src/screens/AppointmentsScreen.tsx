@@ -13,10 +13,12 @@ import {
 } from 'react-native';
 import { collection, addDoc, updateDoc, doc, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import { Calendar } from 'react-native-calendars';
+import { useNavigation } from '@react-navigation/native';
 import { db } from '../config/firebase';
 
-export default function AppointmentsScreen({ route, navigation }: any) {
-  const { role, teamName, tenantId, theme } = useAppContext();
+export default function AppointmentsScreen({ route }: any) {
+  const navigation = useNavigation<any>();
+  const { role, teamName, tenantId, theme, showToast } = useAppContext();
   const styles = getStyles(theme);
   const isAdmin = role === 'admin' || role === 'management';
 
@@ -353,9 +355,9 @@ export default function AppointmentsScreen({ route, navigation }: any) {
       setPrice('');
       setSelectedService(null);
       setSmartSuggestion(null);
-      navigation.navigate('Calendar');
+      if (showToast) showToast('Cita guardada correctamente', 'success'); else alert('Cita guardada correctamente');
     } catch (error) {
-      alert("Error al guardar la cita.");
+      alert("Error al guardar la cita: " + error.message); console.error(error);
     }
   };
 

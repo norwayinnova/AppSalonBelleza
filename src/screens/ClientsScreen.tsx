@@ -178,15 +178,14 @@ export default function ClientsScreen() {
             const initials = item.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
 
             return (
-              <TouchableOpacity 
-                activeOpacity={0.95}
+                            <View 
                 style={[
                   styles.clientCard, 
                   isVIP && { borderColor: 'rgba(241, 196, 15, 0.5)', backgroundColor: 'rgba(255, 249, 230, 0.9)' },
                   isProblematic && { borderColor: 'rgba(231, 76, 60, 0.5)', backgroundColor: 'rgba(253, 240, 240, 0.9)' }
                 ]}
-                onPress={() => toggleHistory(item.id, item.technicalNotes)}
               >
+                <TouchableOpacity activeOpacity={0.7} onPress={() => toggleHistory(item.id, item.technicalNotes)} style={{flex: 1}}>
                 <View style={styles.cardHeader}>
                   <View style={styles.avatarContainer}>
                     <Text style={styles.avatarText}>{initials}</Text>
@@ -195,7 +194,7 @@ export default function ClientsScreen() {
                   <View style={styles.clientInfo}>
                     <Text style={styles.clientName}>{item.name}</Text>
                     {item.phone ? (
-                      <TouchableOpacity onPress={() => callClient(item.phone)}>
+                      <TouchableOpacity onPress={() => callClient(item.phone)} style={{alignSelf: 'flex-start'}}>
                         <Text style={styles.clientPhone}>📞 {item.phone}</Text>
                       </TouchableOpacity>
                     ) : null}
@@ -214,8 +213,9 @@ export default function ClientsScreen() {
                     <Text style={styles.deleteBtnText}>🗑️</Text>
                   </TouchableOpacity>
                 </View>
+                </TouchableOpacity>
 
-                                {isExpanded && (
+                {isExpanded && (
                   <View style={styles.expandedContainer}>
                     <View style={styles.notesSection}>
                       <Text style={styles.historyTitle}>📝 Ficha Técnica (Alergias, Fórmulas):</Text>
@@ -257,7 +257,7 @@ export default function ClientsScreen() {
                   </View>
                   </View>
                 )}
-              </TouchableOpacity>
+              </View>
             );
           }}
           ListEmptyComponent={
