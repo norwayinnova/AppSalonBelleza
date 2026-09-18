@@ -246,7 +246,42 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>Métodos de Cobro</Text>
+        <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>🕒 Horarios y Apertura</Text>
+        
+        <Text style={styles.label}>Hora de Apertura (ej. 09:00)</Text>
+        <TextInput style={styles.input} value={openTime} onChangeText={setOpenTime} placeholder="09:00" />
+        
+        <Text style={styles.label}>Hora de Cierre (ej. 20:00)</Text>
+        <TextInput style={styles.input} value={closeTime} onChangeText={setCloseTime} placeholder="20:00" />
+
+        <Text style={styles.label}>Inicio de Descanso / Comida (Opcional, ej. 14:00)</Text>
+        <TextInput style={styles.input} value={breakStart} onChangeText={setBreakStart} placeholder="14:00" />
+
+        <Text style={styles.label}>Fin de Descanso / Comida (Opcional, ej. 16:00)</Text>
+        <TextInput style={styles.input} value={breakEnd} onChangeText={setBreakEnd} placeholder="16:00" />
+
+        <Text style={styles.label}>Días de la semana cerrados</Text>
+        <View style={{flexDirection: 'row', gap: 5, marginTop: 5, marginBottom: 15}}>
+          {[1,2,3,4,5,6,0].map(day => {
+            const names = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+            const isClosed = closedDays.includes(day);
+            return (
+              <TouchableOpacity 
+                key={day} 
+                onPress={() => setClosedDays(prev => isClosed ? prev.filter(d => d !== day) : [...prev, day])}
+                style={{
+                  paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, 
+                  backgroundColor: isClosed ? theme.primaryColor : '#eee'
+                }}>
+                <Text style={{color: isClosed ? '#fff' : '#555', fontWeight: 'bold'}}>{names[day]}</Text>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: theme.primaryColor }]}>💳 Métodos de Cobro</Text>
         <View style={styles.switchRow}>
           <View style={{flex: 1}}><Text style={styles.label}>Pago en Local (Efectivo/TPV)</Text></View>
           <Switch value={allowInStore} onValueChange={setAllowInStore} trackColor={{ true: theme.primaryColor }} />
