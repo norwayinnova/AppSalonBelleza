@@ -23,6 +23,8 @@ export default function AuthScreen({ mode }: Props) {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [salonCode, setSalonCode] = useState('');
+  const [isNewSalon, setIsNewSalon] = useState(false);
+  const [newSalonName, setNewSalonName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -47,9 +49,15 @@ export default function AuthScreen({ mode }: Props) {
       setError('Introduce tu nombre.');
       return;
     }
-    if (!isLogin && mode === 'professional' && !salonCode.trim()) {
-      setError('Introduce el codigo de tu salon.');
-      return;
+    if (!isLogin && mode === 'professional') {
+      if (!isNewSalon && !salonCode.trim()) {
+        setError('Introduce el código de tu salón.');
+        return;
+      }
+      if (isNewSalon && !newSalonName.trim()) {
+        setError('Introduce el nombre de tu salón.');
+        return;
+      }
     }
 
     setLoading(true);
@@ -66,22 +74,51 @@ export default function AuthScreen({ mode }: Props) {
         await updateProfile(cred.user, { displayName: name.trim() });
 
         if (mode === 'professional') {
-          // Verify salon code exists
-          const code = salonCode.trim().toLowerCase();
-          const tenantSnap = await getDoc(doc(db, 'tenants', code));
-          if (!tenantSnap.exists()) {
-            setError('El codigo de salon no existe. Contacta con tu administrador.');
-            setLoading(false);
-            return;
+          if (isNewSalon) {
+            const generatedCode = newSalonName.trim().toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '') + Math.floor(Math.random() * 1000);
+            
+            const newTheme = {
+              appName: newSalonName.trim(),
+              primaryColor: '#3498db',
+              secondaryColor: '#ecf0f1',
+              darkTextColor: '#2c3e50',
+              businessHours: { openTime: '09:00', closeTime: '20:00', closedDays: [0] }
+            };
+            await setDoc(doc(db, 'tenants', generatedCode), newTheme);
+
+            await setDoc(doc(db, 'users', cred.user.uid), {
+              email: email.trim(),
+              displayName: name.trim(),
+              tenantId: generatedCode,
+              role: 'admin',
+              createdAt: new Date().toISOString()
+            });
+
+            await setDoc(doc(db, 'admin', generatedCode), { pinEnabled: false, pin: '1234' });
+
+            // Inyectar datos iniciales para que la agenda no esté vacía
+            const { collection, addDoc } = require('firebase/firestore');
+            await addDoc(collection(db, 'teams'), { tenantId: generatedCode, name: 'Equipo 1', role: 'stylist' });
+            await addDoc(collection(db, 'services'), { tenantId: generatedCode, name: 'Corte Básico', duration: '30', price: '15' });
+
+            setTenantId(generatedCode);
+            loginAsAdmin();
+          } else {
+            const code = salonCode.trim().toLowerCase();
+            const tenantSnap = await getDoc(doc(db, 'tenants', code));
+            if (!tenantSnap.exists()) {
+              setError('El codigo de salon no existe. Contacta con tu administrador.');
+              setLoading(false);
+              return;
+            }
+            await setDoc(doc(db, 'users', cred.user.uid), {
+              email: email.trim(),
+              displayName: name.trim(),
+              tenantId: code,
+              role: 'team',
+              createdAt: new Date().toISOString()
+            });
           }
-          // Save user profile linked to tenant
-          await setDoc(doc(db, 'users', cred.user.uid), {
-            email: email.trim(),
-            displayName: name.trim(),
-            tenantId: code,
-            role: 'team',
-            createdAt: new Date().toISOString()
-          });
         } else {
           // Client account
           await setDoc(doc(db, 'users', cred.user.uid), {
@@ -157,18 +194,43 @@ export default function AuthScreen({ mode }: Props) {
           </View>
 
           {!isLogin && isPro && (
-            <View style={styles.field}>
-              <Text style={styles.label}>Codigo del Salon</Text>
-              <TextInput
-                style={[styles.input, { borderColor: accentColor }]}
-                value={salonCode}
-                onChangeText={setSalonCode}
-                placeholder="Ej: avalon_mystic"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <Text style={styles.hint}>Tu administrador te lo facilita</Text>
-            </View>
+            <>
+              <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, paddingHorizontal: 5}}>
+                <TouchableOpacity onPress={() => setIsNewSalon(false)} style={{flex: 1, alignItems: 'center', paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: !isNewSalon ? accentColor : '#eee'}}>
+                  <Text style={{fontWeight: 'bold', color: !isNewSalon ? accentColor : '#999'}}>Soy Empleado</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setIsNewSalon(true)} style={{flex: 1, alignItems: 'center', paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: isNewSalon ? accentColor : '#eee'}}>
+                  <Text style={{fontWeight: 'bold', color: isNewSalon ? accentColor : '#999'}}>Crear mi Salón</Text>
+                </TouchableOpacity>
+              </View>
+
+              {!isNewSalon ? (
+                <View style={styles.field}>
+                  <Text style={styles.label}>Código del Salón</Text>
+                  <TextInput
+                    style={[styles.input, { borderColor: accentColor }]}
+                    value={salonCode}
+                    onChangeText={setSalonCode}
+                    placeholder="Ej: avalon_mystic"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <Text style={styles.hint}>Tu administrador te lo facilita</Text>
+                </View>
+              ) : (
+                <View style={styles.field}>
+                  <Text style={styles.label}>Nombre de tu Salón</Text>
+                  <TextInput
+                    style={[styles.input, { borderColor: accentColor }]}
+                    value={newSalonName}
+                    onChangeText={setNewSalonName}
+                    placeholder="Ej: InnovaNor Peluquería"
+                    autoCapitalize="words"
+                  />
+                  <Text style={styles.hint}>Crearemos un espacio dedicado para ti.</Text>
+                </View>
+              )}
+            </>
           )}
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
