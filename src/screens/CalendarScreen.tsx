@@ -651,8 +651,9 @@ export default function CalendarScreen({ route, navigation }: any) {
                     </View>
                   </TouchableOpacity>
                 );
-              })}
-            </View>
+                                        });
+                        })()}
+                        </View>
 
             {/* Leyenda */}
             <View style={styles.monthLegend}>
@@ -778,8 +779,9 @@ export default function CalendarScreen({ route, navigation }: any) {
                         <Text style={{ fontSize: 11, color: '#aaa', textAlign: 'right' }}>{String(Math.floor(h)).padStart(2,'0')}:00</Text>
                       </View>
                     );
-                  })}
-                </View>
+                                            });
+                        })()}
+                        </View>
 
                 {/* Grid (Horizontally Scrollable) */}
                 <ScrollView 
@@ -805,29 +807,83 @@ export default function CalendarScreen({ route, navigation }: any) {
                           <View key={`h-${h}`} style={{ position: 'absolute', top: (h - START_HOUR) * 60 * PX_PER_MIN + 30 * PX_PER_MIN, left: 0, right: 0, height: 1, backgroundColor: '#FDF9fa', borderStyle: 'dashed' }} />
                         ))}
 
-                        {/* Citas posicionadas */}
-                        {teamApps.map(item => {
-                          const top = timeToTop(item.time);
-                          const dur = parseInt(item.duration || '60');
-                          const height = Math.max(dur * PX_PER_MIN, 30);
-                          let colors = STATUS_COLORS[item.status || 'pending'];
-                          
-                          const isBloqueo = (item.serviceName && item.serviceName.toLowerCase().includes('bloquead')) || 
-                                            (item.client && item.client.toLowerCase().includes('bloquead'));
-                          if (isBloqueo) {
-                            colors = { bg: '#f4e8fa', border: '#9b59b6', text: '#8e44ad' };
-                          }
+                                                {/* Citas posicionadas y superpuestas */}
+                        {(() => {
+                          const sorted = [...teamApps].sort((a, b) => {
+                            const startA = timeToTop(a.time);
+                            const startB = timeToTop(b.time);
+                            if (startA !== startB) return startA - startB;
+                            return parseInt(b.duration || '60') - parseInt(a.duration || '60');
+                          });
 
-                          return (
-                            <TouchableOpacity
-                              key={item.id}
-                              onPress={() => setSelectedAppointment(item)}
-                              style={{
-                                position: 'absolute',
-                                top,
-                                left: 3,
-                                right: 3,
-                                height,
+                          const layout: any[] = [];
+                          let columns: any[][] = [];
+                          let lastEventEnding = 0;
+
+                          const packGroup = () => {
+                            const numCols = columns.length;
+                            columns.forEach((col, colIdx) => {
+                              col.forEach(app => {
+                                layout.push({ app, numCols, colIdx });
+                              });
+                            });
+                          };
+
+                          sorted.forEach((app) => {
+                            const start = timeToTop(app.time);
+                            const end = start + Math.max(parseInt(app.duration || '60') * PX_PER_MIN, 30);
+
+                            if (start >= lastEventEnding) {
+                              if (columns.length > 0) packGroup();
+                              columns = [];
+                              lastEventEnding = 0;
+                            }
+
+                            let placed = false;
+                            for (let i = 0; i < columns.length; i++) {
+                              const col = columns[i];
+                              const lastApp = col[col.length - 1];
+                              const lastEnd = timeToTop(lastApp.time) + Math.max(parseInt(lastApp.duration || '60') * PX_PER_MIN, 30);
+                              if (start >= lastEnd) {
+                                col.push(app);
+                                placed = true;
+                                break;
+                              }
+                            }
+
+                            if (!placed) columns.push([app]);
+                            lastEventEnding = Math.max(lastEventEnding, end);
+                          });
+                          if (columns.length > 0) packGroup();
+
+                          return layout.map(({ app: item, numCols, colIdx }) => {
+                            const top = timeToTop(item.time);
+                            const dur = parseInt(item.duration || '60');
+                            const height = Math.max(dur * PX_PER_MIN, 30);
+                            
+                            let colors = STATUS_COLORS[item.status || 'pending'] || STATUS_COLORS['pending'];
+                            const isBloqueo = (item.serviceName && item.serviceName.toLowerCase().includes('bloquead')) || 
+                                              (item.client && item.client.toLowerCase().includes('bloquead'));
+                            if (isBloqueo) {
+                              colors = { bg: '#f4e8fa', border: '#9b59b6', text: '#8e44ad' };
+                            }
+                            if (item.status === 'cancelled') {
+                              colors = { bg: '#fdf0f0', border: '#f5b7b1', text: '#e74c3c' };
+                            }
+
+                            const widthPercentage = 100 / numCols;
+                            const leftPercentage = (colIdx / numCols) * 100;
+                            
+                            return (
+                              <TouchableOpacity
+                                key={item.id}
+                                onPress={() => setSelectedAppointment(item)}
+                                style={{
+                                  position: 'absolute',
+                                  top,
+                                  left: ${leftPercentage}%,
+                                  width: ${widthPercentage}%,
+                                  height,
                                 backgroundColor: colors.bg,
                                 borderRadius: 6,
                                 borderLeftWidth: 3,
@@ -846,8 +902,9 @@ export default function CalendarScreen({ route, navigation }: any) {
                               {conflicts[item.id] && <Text style={{ fontSize: 10, color: '#d9534f' }}>⚠️</Text>}
                             </TouchableOpacity>
                           );
-                        })}
-                      </View>
+                                                  });
+                        })()}
+                        </View>
                     );
                   })}
                 </ScrollView>
@@ -1061,8 +1118,9 @@ export default function CalendarScreen({ route, navigation }: any) {
                         </Text>
                       </TouchableOpacity>
                     );
-                  })}
-                </View>
+                                            });
+                        })()}
+                        </View>
               </View>
 
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 5 }}>
