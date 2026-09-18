@@ -6,6 +6,8 @@ import { useAppContext, AppTheme } from '../context/AppContext';
 
 interface SalonItem extends AppTheme {
   id: string;
+  ratingAvg?: number;
+  reviewCount?: number;
 }
 
 export default function MarketplaceScreen() {
@@ -73,6 +75,10 @@ export default function MarketplaceScreen() {
                 <View style={styles.info}>
                   <Text style={styles.name}>{item.appName}</Text>
                   
+                  
+                    )}
+                  </View>
+
                   {item.publicProfile?.address && (
                     <Text style={styles.address}>📍 {item.publicProfile.address}</Text>
                   )}
@@ -86,7 +92,7 @@ export default function MarketplaceScreen() {
 
               {item.publicProfile?.googleProfileUrl && (
                 <TouchableOpacity style={styles.reviewsBtn} onPress={() => openGoogle(item.publicProfile!.googleProfileUrl!)}>
-                  <Text style={styles.reviewsText}>⭐ Ver Reseñas en Google</Text>
+                  <Text style={styles.reviewsText}>{'\u2B50'} Consultar valoración del negocio</Text>
                 </TouchableOpacity>
               )}
 
@@ -129,6 +135,12 @@ const styles = StyleSheet.create({
   name: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   address: { fontSize: 12, color: '#666', marginTop: 3 },
   phone: { fontSize: 12, color: '#666', marginTop: 1 },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: 4 },
+  starText: { color: '#f1c40f', fontSize: 14, marginRight: 4 },
+  ratingValue: { fontSize: 13, fontWeight: 'bold', color: '#333', marginRight: 4 },
+  ratingCount: { fontSize: 12, color: '#888' },
+  newBadge: { backgroundColor: '#e8f8f5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  newBadgeText: { color: '#1abc9c', fontSize: 10, fontWeight: 'bold' },
   actionText: { fontSize: 13, color: '#3498db', marginTop: 8, fontWeight: 'bold' },
   reviewsBtn: { marginTop: 15, backgroundColor: '#fdf3e7', padding: 8, borderRadius: 6, alignItems: 'center' },
   reviewsText: { color: '#e67e22', fontWeight: 'bold', fontSize: 12 },

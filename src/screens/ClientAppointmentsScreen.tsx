@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, ActivityIndicator, Linking } from 'react-native';
 import { collection, query, where, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAppContext } from '../context/AppContext';
@@ -9,6 +9,7 @@ export default function ClientAppointmentsScreen() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [salonsInfo, setSalonsInfo] = useState<Record<string, string>>({});
+  
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState<string | null>(null);
 
@@ -77,6 +78,30 @@ export default function ClientAppointmentsScreen() {
     setCancelModalVisible(true);
   };
 
+  const leaveGoogleReview = async (app: any) => {
+    try {
+      const tenantSnap = await getDoc(doc(db, 'tenants', app.tenantId));
+      if (tenantSnap.exists()) {
+        const data = tenantSnap.data();
+        const url = data.publicProfile?.googleProfileUrl;
+        
+        if (url) {
+          // Open the Google Review URL
+          Linking.openURL(url).catch(() => showToast('No se pudo abrir el enlace', 'error'));
+          
+          // Mark as reviewed in our DB so the button disappears
+          await updateDoc(doc(db, 'appointments', app.id), {
+            isReviewed: true
+          });
+        } else {
+          showToast('Este salón no tiene configurado su perfil de Google.', 'error');
+        }
+      }
+    } catch (error) {
+      showToast('Error al procesar la solicitud', 'error');
+    }
+  };
+
   const now = new Date();
   
   const upcoming = appointments.filter(a => {
@@ -104,9 +129,9 @@ export default function ClientAppointmentsScreen() {
         </View>
         
         <Text style={styles.serviceText}>{item.serviceName}</Text>
-        <Text style={styles.detailsText}>📅 {item.date} a las {item.time}</Text>
-        <Text style={styles.detailsText}>💇‍♀️ Con {item.team}</Text>
-        <Text style={styles.detailsText}>💶 {item.price}€ ({item.duration} min)</Text>
+        <Text style={styles.detailsText}>{'\uD83D\uDCC5'} {item.date} a las {item.time}</Text>
+        <Text style={styles.detailsText}>{'\uD83D\uDC87\u200D\u2640\uFE0F'} Con {item.team}</Text>
+        <Text style={styles.detailsText}>{'\uD83D\uDCB6'} {item.price}€ ({item.duration} min)</Text>
 
         {!isPast && !isCancelled && (
           <TouchableOpacity 
@@ -115,6 +140,21 @@ export default function ClientAppointmentsScreen() {
           >
             <Text style={styles.cancelBtnText}>Cancelar Cita</Text>
           </TouchableOpacity>
+        )}
+
+        {isPast && !isCancelled && !item.isReviewed && (
+          <TouchableOpacity 
+            style={styles.reviewBtn} 
+            onPress={() => leaveGoogleReview(item)}
+          >
+            <Text style={styles.reviewBtnText}>{'\u2B50'} Dejar Reseña en Google</Text>
+          </TouchableOpacity>
+        )}
+
+        {isPast && item.isReviewed && (
+          <View style={styles.reviewedBadge}>
+            <Text style={styles.reviewedBadgeText}>{'\u2713'} Reseña enviada a Google</Text>
+          </View>
         )}
       </View>
     );
@@ -164,6 +204,7 @@ export default function ClientAppointmentsScreen() {
           </View>
         </View>
       </Modal>
+
     </View>
   );
 }
@@ -215,5 +256,10 @@ const styles = StyleSheet.create({
   modalBtnCancel: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#ecf0f1' },
   modalBtnCancelText: { color: '#7f8c8d', fontWeight: 'bold' },
   modalBtnConfirm: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#e74c3c' },
-  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' }
+  modalBtnConfirmText: { color: '#fff', fontWeight: 'bold' },
+
+  reviewBtn: { marginTop: 12, alignSelf: 'flex-start', backgroundColor: '#e8f4fd', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: '#d1e8fa' },
+  reviewBtnText: { color: '#3498db', fontWeight: 'bold', fontSize: 13 },
+  reviewedBadge: { marginTop: 12, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 8 },
+  reviewedBadgeText: { color: '#2ecc71', fontWeight: 'bold', fontSize: 13 }
 });
