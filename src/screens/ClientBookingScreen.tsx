@@ -330,11 +330,11 @@ export default function ClientBookingScreen({ navigation }: any) {
           <Text style={styles.stepTitle}>3. ¿Con quién quieres tu cita?</Text>
           <View style={styles.grid}>
             <TouchableOpacity style={[styles.optionCard, selectedTeam?.id === 'any' && styles.optionSelected]} onPress={() => setSelectedTeam({id: 'any', name: 'Cualquiera'})}>
-              <Text style={[styles.optionTitle, selectedTeam?.id === 'any' && styles.textSelected]}>\uD83D\uDC87\u200D\u2640\uFE0F Sin preferencia (Cualquiera)</Text>
+              <Text style={[styles.optionTitle, selectedTeam?.id === 'any' && styles.textSelected]}>{'\uD83D\uDC87\u200D\u2640\uFE0F'} Sin preferencia (Cualquiera)</Text>
             </TouchableOpacity>
             {teams.filter(t => !selectedService?.allowedTeams || selectedService.allowedTeams.includes(t.name)).map(t => (
               <TouchableOpacity key={t.id} style={[styles.optionCard, selectedTeam?.id === t.id && styles.optionSelected]} onPress={() => setSelectedTeam(t)}>
-                <Text style={[styles.optionTitle, selectedTeam?.id === t.id && styles.textSelected]}>\uD83D\uDC87\u200D\u2640\uFE0F {t.name}</Text>
+                <Text style={[styles.optionTitle, selectedTeam?.id === t.id && styles.textSelected]}>{'\uD83D\uDC87\u200D\u2640\uFE0F'} {t.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
