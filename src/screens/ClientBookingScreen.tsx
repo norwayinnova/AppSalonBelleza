@@ -62,6 +62,20 @@ export default function ClientBookingScreen({ navigation }: any) {
   const calculateSlots = async () => {
     setIsCalculatingSlots(true);
     try {
+      const dayOfWeek = new Date(selectedDate).getDay();
+      const bh = theme.businessHours || { openTime: '09:00', closeTime: '20:00', closedDays: [] };
+      if (bh.closedDays && bh.closedDays.includes(dayOfWeek)) {
+        setAvailableSlots([]);
+        setIsCalculatingSlots(false);
+        return;
+      }
+
+      const getMins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+      const openMins = getMins(bh.openTime || '09:00');
+      const closeMins = getMins(bh.closeTime || '20:00');
+      const breakStartMins = bh.breakStart ? getMins(bh.breakStart) : -1;
+      const breakEndMins = bh.breakEnd ? getMins(bh.breakEnd) : -1;
+
       // Get all appointments for that day
       const qApps = query(collection(db, 'appointments'), where('tenantId', '==', tenantId), where('date', '==', selectedDate));
       const snap = await getDocs(qApps);
@@ -69,16 +83,18 @@ export default function ClientBookingScreen({ navigation }: any) {
       const allApps: any[] = [];
       snap.forEach(d => allApps.push(d.data()));
 
-      // Generate all possible slots 09:00 to 20:00 every 30 mins
+      const duration = parseInt(selectedService.duration || '60');
       const allSlots: string[] = [];
-      for (let h = 9; h <= 20; h++) {
-        for (let m = 0; m < 60; m += 30) {
-          if (h === 20 && m > 0) continue;
-          allSlots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
-        }
-      }
 
-      const getMins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+      for (let m = openMins; m <= closeMins - duration; m += 30) {
+        if (breakStartMins !== -1 && breakEndMins !== -1) {
+          const slotEnd = m + duration;
+          if (m < breakEndMins && slotEnd > breakStartMins) continue;
+        }
+        const hStr = Math.floor(m / 60).toString().padStart(2, '0');
+        const mStr = (m % 60).toString().padStart(2, '0');
+        allSlots.push(`${hStr}:${mStr}`);
+      }
       const duration = parseInt(selectedService.duration || '60');
 
       let teamsToCheck = selectedTeam.id === 'any' 
@@ -352,7 +368,11 @@ export default function ClientBookingScreen({ navigation }: any) {
                 ))}
               </View>
             ) : (
-              <Text style={styles.noSlotsText}>No hay huecos disponibles este día para la empleada seleccionada.</Text>
+              <Text style={styles.noSlotsText}>
+                {theme.businessHours?.closedDays?.includes(new Date(selectedDate).getDay()) 
+                  ? 'El establecimiento está cerrado en este día de la semana.' 
+                  : 'No hay huecos disponibles este día para la empleada seleccionada.'}
+              </Text>
             )
           ) : (
             <Text style={styles.noSlotsText}>Selecciona un día en el calendario.</Text>

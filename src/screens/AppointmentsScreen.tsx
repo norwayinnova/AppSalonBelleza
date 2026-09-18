@@ -362,11 +362,14 @@ export default function AppointmentsScreen({ route }: any) {
   };
 
   const timeSlots = [];
-  for (let h = 9; h <= 20; h++) {
-    for (let m = 0; m < 60; m += 15) {
-      if (h === 20 && m > 0) continue; 
-      timeSlots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
-    }
+  const bh = theme.businessHours || { openTime: '09:00', closeTime: '20:00' };
+  const getMins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const openMins = getMins(bh.openTime || '09:00');
+  const closeMins = getMins(bh.closeTime || '20:00');
+  for (let m = openMins; m <= closeMins; m += 15) {
+    const hStr = Math.floor(m / 60).toString().padStart(2, '0');
+    const mStr = (m % 60).toString().padStart(2, '0');
+    timeSlots.push(`${hStr}:${mStr}`);
   }
 
   let activeTeamsList = teams.length > 0 ? teams.map(t => t.name) : ['Equipo 1', 'Equipo 2'];

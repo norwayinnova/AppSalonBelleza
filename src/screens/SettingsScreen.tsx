@@ -35,6 +35,13 @@ export default function SettingsScreen() {
   const [allowPaypal, setAllowPaypal] = useState(theme.paymentOptions?.allowPaypal ?? false);
   const [paypalClientId, setPaypalClientId] = useState(theme.paymentOptions?.paypalClientId || '');
 
+  // Horarios Reales
+  const [openTime, setOpenTime] = useState(theme.businessHours?.openTime || '09:00');
+  const [closeTime, setCloseTime] = useState(theme.businessHours?.closeTime || '20:00');
+  const [breakStart, setBreakStart] = useState(theme.businessHours?.breakStart || '');
+  const [breakEnd, setBreakEnd] = useState(theme.businessHours?.breakEnd || '');
+  const [closedDays, setClosedDays] = useState<number[]>(theme.businessHours?.closedDays || [0]);
+
   // Perfil Público
   const [address, setAddress] = useState(theme.publicProfile?.address || '');
   const [contactPhone, setContactPhone] = useState(theme.publicProfile?.contactPhone || '');
@@ -134,7 +141,19 @@ export default function SettingsScreen() {
       const updates: any = {
         appName, primaryColor, secondaryColor, darkTextColor,
         paymentOptions: { allowInStore, allowBizum, bizumPhone, allowStripe, stripePublicKey, allowRedsys, redsysFuc, redsysKey, allowPaypal, paypalClientId },
-        publicProfile: { address, contactPhone, googleProfileUrl, galleryUrls }
+        publicProfile: {
+          address,
+          contactPhone,
+          googleProfileUrl,
+          galleryUrls
+        },
+        businessHours: {
+          openTime,
+          closeTime,
+          breakStart,
+          breakEnd,
+          closedDays
+        }
       };
       if (logoUrl) updates.logoUrl = logoUrl;
 
