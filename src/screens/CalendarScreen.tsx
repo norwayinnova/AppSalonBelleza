@@ -726,9 +726,11 @@ export default function CalendarScreen({ route, navigation }: any) {
 
       {/* ===== VISTA DE CUADRÍCULA HORARIA (09:00 - 20:30) ===== */}
       {calendarView === 'day' && (() => {
-        const START_HOUR = 9;      // 09:00
-        const END_HOUR = 20.5;     // 20:30
-        const TOTAL_MINS = (END_HOUR - START_HOUR) * 60; // 690 min
+        const bh = theme.businessHours || { openTime: '09:00', closeTime: '20:00' };
+        const getMins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+        const START_HOUR = Math.floor(getMins(bh.openTime || '09:00') / 60);
+        const END_HOUR = (getMins(bh.closeTime || '20:00') / 60) + 0.5;
+        const TOTAL_MINS = (END_HOUR * 60) - (START_HOUR * 60);
         const PX_PER_MIN = 2;      // 2px por minuto → cada hora = 120px
         const GRID_HEIGHT = TOTAL_MINS * PX_PER_MIN;
         const LABEL_WIDTH = 48;
