@@ -255,6 +255,7 @@ export default function ClientsScreen() {
                       ))
                     )}
                   </View>
+                  </View>
                 )}
               </TouchableOpacity>
             );
